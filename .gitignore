@@ -1,0 +1,12 @@
+# Build artifacts
+dist/
+
+# macOS cruft
+.DS_Store
+__MACOSX/
+
+# Contributors' local agent/IDE state (never ship to the public repo).
+# Note: .claude-plugin/ is a different path and stays tracked.
+.claude/
+.agents/
+.idea/

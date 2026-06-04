@@ -1,0 +1,14 @@
+{
+  "name": "agent-skills",
+  "owner": { "name": "GetWhys", "email": "hello@getwhys.io" },
+  "metadata": { "description": "GetWhys agent skills", "version": "0.1.0" },
+  "plugins": [
+    {
+      "name": "getwhys-skills",
+      "description": "Companion skills for the GetWhys MCP server",
+      "source": "./",
+      "strict": false,
+      "skills": []
+    }
+  ]
+}

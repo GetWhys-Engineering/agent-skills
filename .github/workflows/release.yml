@@ -1,0 +1,32 @@
+name: Release skills
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate skills
+        run: ./scripts/validate-skills.sh
+
+      - name: Package per-skill zips
+        run: ./scripts/package-skills.sh
+
+      - name: Package M365 Copilot Cowork plugin
+        run: ./scripts/package-cowork-plugin.sh
+        env:
+          VERSION: ${{ github.ref_name }}
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*.zip
+          generate_release_notes: true

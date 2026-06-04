@@ -1,0 +1,26 @@
+{
+  "$schema": "https://developer.microsoft.com/en-us/json-schemas/teams/v1.28/MicrosoftTeams.schema.json",
+  "manifestVersion": "1.28",
+  "version": "__VERSION__",
+  "id": "f51a7c83-5c24-4e68-b01f-29fa7e5cc2e6",
+  "developer": {
+    "name": "GetWhys",
+    "websiteUrl": "https://www.getwhys.io",
+    "privacyUrl": "https://www.getwhys.io/privacy",
+    "termsOfUseUrl": "https://www.getwhys.io/terms"
+  },
+  "icons": {
+    "color": "color.png",
+    "outline": "outline.png"
+  },
+  "name": {
+    "short": "GetWhys Skills",
+    "full": "GetWhys MCP companion Agent Skills"
+  },
+  "description": {
+    "short": "Companion skills for the GetWhys MCP server.",
+    "full": "Agent Skills that guide Microsoft 365 Copilot Cowork in using the GetWhys MCP server effectively. The GetWhys MCP server must be connected separately via GetWhys onboarding — these skills are inert without it."
+  },
+  "accentColor": "#FFFFFF",
+  "agentSkills": "__AGENT_SKILLS__"
+}
