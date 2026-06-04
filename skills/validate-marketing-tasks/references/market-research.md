@@ -1,9 +1,44 @@
-# `query_market_research` — deep guidance
+# Market & buyer research — playbooks and `query_market_research` guidance
 
 `query_market_research` returns a synthesized, evidence-grounded answer drawn from GetWhys's
 proprietary buyer-interview corpus plus any documents the user's organization has uploaded.
 It is a question-answering tool, not a document search: each call answers exactly one focused
 question, and the response is already synthesized prose with grounding markers.
+
+## Playbook — answer a research question
+
+1. **One focused question per call.** A multi-part ask decomposes into one
+   `query_market_research` call per sub-question, issued in parallel. You synthesize across
+   the answers; the tool will not.
+   - **Comparisons split per side.** "Compare mid-market vs enterprise CRM buying" → exactly
+     two parallel calls: one on how mid-market companies buy CRM, one on how enterprise
+     companies buy CRM. A `query` that names both sides ("mid-market versus enterprise …")
+     is still a packed comparison — split it.
+   - **Answer the ask as posed.** Don't pre-emptively add angles (pricing, buying committees)
+     the user didn't raise — deliver the answer, then offer follow-up angles.
+2. Per call: `query` = the semantic intent as a natural-language question (no retrieval verbs
+   like "find" or "show me"); `explain` = a one-line rationale for this specific call;
+   distinctive entities and their variants go in `keywords.allOfAny`; time windows go in
+   `temporalRange` (YYYY-MM-DD), never in keywords. Full crafting rules under Inputs below.
+3. Relay the answer per the Output contract below: "GetWhys Sources" paragraph verbatim,
+   `view_in_getwhys` link, inline † markers preserved.
+
+Recurring shapes: win/loss ("why do we lose deals to [competitor]?"), vendor/competitor
+sentiment ("what do customers think of [vendor]?"), pricing/packaging/discount norms,
+buying-committee and buyer-journey mapping, channels/watering holes — recipes below.
+
+## Playbook — competitive intel & battlecards
+
+1. Decompose into 3–4 parallel focused `query_market_research` calls, one per competitor ×
+   angle: their customers' pain points; win/loss reasons against them; what buyers say about
+   them; their pricing/packaging.
+2. Synthesize the answers into the user's template (battlecard sections, comparison table,
+   talk track) — keep each section traceable to its † markers and include every call's
+   "GetWhys Sources" paragraph.
+3. Battlecards, talk tracks, and competitive teardowns are **internal analytical artifacts** —
+   do NOT call `get_brand_voice` or any messaging-framework tool for them.
+
+A full worked decomposition follows below.
 
 ## Inputs
 
