@@ -8,7 +8,7 @@
       "description": "Companion skills for the GetWhys MCP server",
       "source": "./",
       "strict": false,
-      "skills": []
+      "skills": ["./skills/validate-marketing-tasks"]
     }
   ]
 }
