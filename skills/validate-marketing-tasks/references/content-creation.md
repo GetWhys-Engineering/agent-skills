@@ -1,9 +1,15 @@
-# Creating outward-facing content — deep guidance
+# Creating and scoring content — deep guidance
 
-The end-to-end workflow for anything the user will publish or send: blog posts, emails,
-landing pages, web copy, social/LinkedIn posts, ad copy, white papers, case studies,
-one-pagers, campaign briefs, content calendars, sales pitches, customer stories, scripts.
-It covers three ask shapes equally:
+Two entry points share this file:
+
+- **Creating outward-facing content** (steps 1–5 below) — anything the user will publish or
+  send: blog posts, emails, landing pages, web copy, social/LinkedIn posts, ad copy, white
+  papers, case studies, one-pagers, campaign briefs, content calendars, sales pitches,
+  customer stories, scripts.
+- **Scoring an existing draft** with no drafting asked for — jump straight to the
+  "Playbook — score existing content" section below.
+
+The creation workflow covers three ask shapes equally:
 
 - **Net-new drafts** — "write a launch email for…", "draft a blog post about…"
 - **Rewrites / optimizations** — "improve this page for [audience]", "make this more relevant
@@ -91,6 +97,24 @@ null otherwise).
 **Custom-rubric caveat**: orgs can override the rubric, so the dimensions and weights in a
 response may differ from the table above. Always render whatever dimensions actually come back
 rather than assuming the default five.
+
+## Playbook — score existing content
+
+The route for "score this draft", "will this resonate with [audience]?", and "how would
+[persona] react to this?" when a draft is attached and no drafting was asked for:
+
+1. Resolve the persona: `list_personas` → match the stated audience to a handle. Never guess
+   `persona:<handle>` IDs; if no persona matches, ask the user which to use rather than
+   inventing one.
+2. Call `score_content` with the same parameters as step 5 above (`content`, `persona_handle`,
+   optional `content_type`, optional framework by `id` XOR `title`).
+3. **Present table-first**: dimensional scores as a table or bar chart before any written
+   summary, then `persona_fit_summary` and `recommendations`.
+
+Scoring-only asks need **no kickoff pair**: don't call `get_brand_voice` or any
+messaging-framework tool just to score — the org's brand voice is included in scoring
+automatically when configured. If the user then asks you to revise the draft, that's a
+content-generation kickoff: switch to the full workflow at step 1.
 
 ## Worked example 1 — net-new draft
 
