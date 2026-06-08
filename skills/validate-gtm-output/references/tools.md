@@ -2,6 +2,9 @@
 
 ## Tool quick reference
 
+The GetWhys MCP server is the source of truth for exact tool names and inputs; this table is a
+sequencing cheat-sheet, not a schema.
+
 | Tool | Purpose | Key input | Typical next step |
 |---|---|---|---|
 | `whoami` | Who is authenticated + which org | — | Sanity-check workspace |
@@ -41,7 +44,7 @@ not retryable:
 
 | Response | Meaning |
 |---|---|
-| "No personas found in this workspace." | No buyer personas configured |
+| "No personas found in this workspace." | No personas configured |
 | "No brand voice characteristics configured for this workspace." | No brand voice configured |
 | "No messaging frameworks configured for this workspace." | No frameworks configured |
 
