@@ -36,7 +36,8 @@ buying-committee and buyer-journey mapping, channels/watering holes — recipes 
    talk track) — keep each section traceable to its † markers and include every call's
    "GetWhys Sources" paragraph.
 3. Battlecards, talk tracks, and competitive teardowns are **internal analytical artifacts** —
-   do NOT call `get_brand_voice` or any messaging-framework tool for them.
+   do NOT call `get_brand_voice` for them. A messaging framework is an optional input: pull one
+   in when the org's positioning or approved claims should shape the output; otherwise skip it.
 
 A full worked decomposition follows below.
 
@@ -128,7 +129,8 @@ The most common templated ask. "Build a battlecard against Competitor X" decompo
 
 Then synthesize the four answers into the user's battlecard template (or a standard
 overview / strengths / weaknesses / why-we-win / objection-handling layout). A battlecard is an
-internal artifact: **no `get_brand_voice`, no messaging-framework calls.** Include each call's
+internal artifact: **no `get_brand_voice` styling**; a messaging framework is an optional input
+when the org's positioning should shape it. Include each call's
 "GetWhys Sources" paragraph (grouped at the end is fine) and every `view_in_getwhys` link.
 
 ## Output contract

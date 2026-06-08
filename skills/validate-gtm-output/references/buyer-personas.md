@@ -1,4 +1,4 @@
-# Buyer personas — deep guidance
+# Personas — deep guidance
 
 Persona work runs in two directions: **using** the personas the org has configured, and
 **building** new personas from buyer research. Keep them straight — and route "how would
@@ -53,8 +53,10 @@ The classic shape: "Develop a buyer persona for [role]" — often with a section
 4. **Close with refinement offers, not blocking questions**: offer to segment by industry,
    company size, or GTM motion — don't interrogate the user before doing the first pass.
 
-A persona document is an **internal analytical artifact** — no `get_brand_voice`, no
-messaging-framework calls while building it.
+A persona document is an **internal analytical artifact** — don't style it with
+`get_brand_voice`. Messaging frameworks, by contrast, are an optional input: pull one in when
+the org's positioning or value props should shape the persona; otherwise skip it (research is
+the backbone here).
 
 ## Disambiguation
 

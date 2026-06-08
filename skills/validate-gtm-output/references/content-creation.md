@@ -3,9 +3,10 @@
 Two entry points share this file:
 
 - **Creating outward-facing content** (steps 1–5 below) — anything the user will publish or
-  send: blog posts, emails, landing pages, web copy, social/LinkedIn posts, ad copy, white
-  papers, case studies, one-pagers, campaign briefs, content calendars, sales pitches,
-  customer stories, scripts.
+  send, across any GTM function: blog posts, emails, landing pages, web copy, social/LinkedIn
+  posts, ad copy, white papers, case studies, one-pagers, campaign briefs, content calendars,
+  sales pitches and decks, solution briefs, customer stories, product launch briefs, release
+  notes and feature announcements, scripts.
 - **Scoring an existing draft** with no drafting asked for — jump straight to the
   "Playbook — score existing content" section below.
 
@@ -65,7 +66,7 @@ Combine the three inputs:
 
 1. Call `score_content` with:
    - `content` — the draft.
-   - `persona_handle` — from step 2 (e.g. `persona:vp-marketing`). Required; never guessed.
+   - `persona_handle` — from step 2 (e.g. `persona:revenue-leader`). Required; never guessed.
    - `content_type` — optional but useful: "email subject line", "ad copy", "blog post",
      "landing page", "LinkedIn post".
    - `messaging_framework_id` **or** `messaging_framework_title` — optional, exactly one, to
@@ -77,26 +78,15 @@ Combine the three inputs:
    meets the user's threshold — default **~80** if they didn't set one. Report the
    before/after scores so the user sees the trajectory.
 
-### The default rubric
+### Reading the `score_content` response
 
-Unless the org has configured custom scoring criteria, `overall_score` (0–100) is the weighted
-composite of five dimensions:
-
-| Dimension | Weight |
-|---|---|
-| Relevance (pain points, motivations, KPIs addressed) | 40% |
-| CTA / Persuasion | 30% |
-| Clarity & Messaging | 10% |
-| Brand Recall & Identity | 10% |
-| Emotional Engagement | 10% |
-
-Alongside the dimensions: `brand_voice_match` (the org's brand voice is automatically included
-when configured; null otherwise) and `framework_match` (pass/fail when you passed a framework;
-null otherwise).
-
-**Custom-rubric caveat**: orgs can override the rubric, so the dimensions and weights in a
-response may differ from the table above. Always render whatever dimensions actually come back
-rather than assuming the default five.
+The response carries `overall_score` (0–100), a set of `dimensional_scores`, and
+`recommendations`, plus `brand_voice_match` and `framework_match` when applicable. The rubric —
+which dimensions exist and how they're weighted — is configured per-org and can be customized,
+so don't assume a fixed set: **render whatever dimensions actually come back**, table-first,
+rather than describing weights from memory. `brand_voice_match` is populated when the org has
+configured brand voice (null otherwise); `framework_match` is pass/fail when you passed a
+framework (null otherwise).
 
 ## Playbook — score existing content
 
@@ -128,15 +118,15 @@ content-generation kickoff: switch to the full workflow at step 1.
 5. `score_content({ content, persona_handle: "persona:it-director", content_type: "LinkedIn post" })`
    → table of dimensional scores → revise → resubmit → deliver the winner with its score.
 
-## Worked example 2 — rewrite for a new audience
+## Worked example 2 — sales solution brief for a new audience
 
-> "Improve this homepage section for retail banking buyers."
+> "Turn our product overview into a one-page solution brief our AEs can send to retail-banking buyers."
 
-1. Parallel: `get_brand_voice` + `get_all_messaging_frameworks` (a rewrite is a kickoff).
+1. Parallel: `get_brand_voice` + `get_all_messaging_frameworks` (a prospect-facing rewrite is a kickoff).
 2. `list_personas` → closest match to retail-banking buyers → `get_persona`.
 3. Grounding: `query_market_research` — query "What do banking technology buyers prioritize
    when evaluating vendor software?", `keywords: { allOfAny: [["bank", "banking", "financial institution"]] }`.
-4. Rewrite the section: keep the user's structure, swap generic claims for persona-relevant
-   pains/KPIs, enforce voice do/don't rules.
-5. Score loop against the chosen persona with `content_type: "web copy"`; iterate to ~80+;
+4. Write the brief: lead with the persona's priorities and pains, map them to value props from
+   the frameworks, enforce voice do/don't rules, and keep it to one page.
+5. Score loop against the chosen persona with `content_type: "solution brief"`; iterate to ~80+;
    present before/after scores with the table first.
