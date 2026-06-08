@@ -21,7 +21,7 @@ The same skills work in:
 
 | Skill | What it does | Download |
 |---|---|---|
-| *(coming soon)* | Skills are being added — watch [Releases](https://github.com/GetWhys-Engineering/agent-skills/releases). | `…/releases/latest/download/<skill>.zip` |
+| [`validate-gtm-output`](skills/validate-gtm-output/SKILL.md) | Grounds marketing, content, and GTM work in real buyer evidence via the GetWhys MCP tools — research questions, competitive intel and battlecards, outward-facing content with brand voice and messaging frameworks, persona building, and draft scoring. | [zip](https://github.com/GetWhys-Engineering/agent-skills/releases/latest/download/validate-gtm-output.zip) |
 
 ## Install — pick your platform
 
