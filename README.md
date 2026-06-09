@@ -30,7 +30,8 @@ The same skills work in:
 Download the skill's `.zip` above, then upload it in settings:
 
 - **Claude (Team/Enterprise admin):** Org settings → Skills → **+ Add** → select
-  the zip. On by default for every user, across web, Desktop, and Claude Cowork.
+  the zip. On by default for every user, across web, the Desktop Chat tab, and
+  Claude Cowork (where Cowork is enabled for your org).
 - **ChatGPT (Business/Enterprise — beta):** *New skill → Upload from computer*
   → **Share** with the workspace.
 
