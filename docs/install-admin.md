@@ -25,10 +25,16 @@ The **same zip** works for both Claude and ChatGPT below.
 ## 2a. Claude.ai / Claude Desktop / Claude Cowork (Team & Enterprise)
 
 One upload provisions **all three surfaces** — web, the Desktop Chat tab, and
-Claude Cowork. Group targeting carries over.
+Claude Cowork (where Cowork is enabled for your org — it's a separate org
+toggle). Group targeting carries over.
 
 1. Go to **Org settings → Skills**.
 2. One-time setup: enable **Skills** and **Code execution & file creation**.
+   > **Why code execution?** These skills are instruction-only — they guide
+   > your assistant in calling the GetWhys MCP tools and run no code or file
+   > creation on your machine. **Code execution & file creation** is a
+   > platform-level prerequisite for Claude's Skills feature itself, not
+   > something these skills use.
 3. Under **Organization skills**, click **+ Add** and select the downloaded `.zip`.
 4. Done — the skill is provisioned to **all users and enabled by default**.
 
