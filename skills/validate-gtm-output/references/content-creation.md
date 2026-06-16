@@ -18,27 +18,20 @@ The creation workflow covers three ask shapes equally:
 - **Longer-form artifacts** — white papers, case studies, thought-leadership posts, content
   calendars: same workflow, with research grounding doing more of the work.
 
-## Step 1 — kickoff pair + framework selection (every time)
+## Step 1 — kickoff pair (every time)
 
 Call `get_brand_voice` and `get_all_messaging_frameworks` **in parallel** before drafting a
 single word. This pair is non-negotiable for publishable content:
 
 - `get_brand_voice` returns the org's voice characteristics, each with do / don't rules.
-- `get_all_messaging_frameworks` returns the full content of the org's **global (always-on)**
-  messaging frameworks — the org-wide guardrails that apply to every piece. These are the
-  baseline; never reduce the org's voice to a single framework.
+- `get_all_messaging_frameworks` returns the **full content of every framework** — the default
+  messaging tool for content generation. Never substitute `list_messaging_frameworks` (an index
+  with no content) or a single `get_messaging_framework` (one framework under-applies the
+  org's voice) unless the user explicitly scopes the task to one named framework.
 
-Then **select the situational frameworks**: call `list_messaging_frameworks` — an index where
-each entry carries an applicability `summary` and a `scope` — and for any **`use_case`** framework
-whose `summary` matches the product / channel / audience of this piece, pull its full content with
-`get_messaging_framework({id})`. `global` frameworks are already covered by `get_all`; don't
-re-fetch them.
-
-Empty results ("No brand voice characteristics configured…") mean the org hasn't set that up —
-proceed without it, mention it once, and point the user to the GetWhys app. If
-`get_all_messaging_frameworks` returns "No global (always-on) messaging frameworks configured…",
-that only rules out *global* frameworks — still call `list_messaging_frameworks` for `use_case`
-ones before drafting without any.
+Empty results ("No brand voice characteristics configured…", "No messaging frameworks
+configured…") mean the org hasn't set them up — proceed without that input, mention it once,
+and point the user to the GetWhys app.
 
 ## Step 2 — persona resolution
 
@@ -64,9 +57,8 @@ Combine the three inputs:
 - **Brand voice**: apply every characteristic's "do" rules; treat "don't" rules as hard
   constraints to check the draft against line-by-line.
 - **Messaging frameworks**: frameworks supply positioning, value props, and approved claims.
-  The **global** frameworks (from `get_all`) always apply; the **`use_case`** frameworks you
-  selected by relevance in step 1 layer on top for this specific piece. Don't contradict the
-  globals.
+  When several apply, prefer the one(s) matching the product/audience of the piece, and don't
+  contradict the rest.
 - **Persona**: lead with their challenges and motivations; make KPIs the payoff of the value
   proposition; match the seniority/register of the audience.
 
@@ -118,25 +110,23 @@ content-generation kickoff: switch to the full workflow at step 1.
 
 > "Write a LinkedIn post announcing our new SSO feature."
 
-1. Parallel: `get_brand_voice` + `get_all_messaging_frameworks` (global guardrails).
-2. `list_messaging_frameworks` → scan summaries + scope → if a `use_case` framework matches (e.g. a security or product-launch framework), `get_messaging_framework({id})` for its full content.
-3. `list_personas` → audience is security-conscious IT buyers → `get_persona({handle: "persona:it-director"})` *(handle from the list output)*.
-4. Grounding (optional, one call): `query_market_research` — query "What frustrations do IT
+1. Parallel: `get_brand_voice` + `get_all_messaging_frameworks`.
+2. `list_personas` → audience is security-conscious IT buyers → `get_persona({handle: "persona:it-director"})` *(handle from the list output)*.
+3. Grounding (optional, one call): `query_market_research` — query "What frustrations do IT
    buyers report around single sign-on and authentication?", `keywords: { allOfAny: [["SSO", "single sign-on", "single sign on"]] }`.
-5. Draft ~3 variants applying voice + frameworks + persona pains.
-6. `score_content({ content, persona_handle: "persona:it-director", content_type: "LinkedIn post" })`
+4. Draft ~3 variants applying voice + frameworks + persona pains.
+5. `score_content({ content, persona_handle: "persona:it-director", content_type: "LinkedIn post" })`
    → table of dimensional scores → revise → resubmit → deliver the winner with its score.
 
 ## Worked example 2 — sales solution brief for a new audience
 
 > "Turn our product overview into a one-page solution brief our AEs can send to retail-banking buyers."
 
-1. Parallel: `get_brand_voice` + `get_all_messaging_frameworks` (a prospect-facing rewrite is a kickoff; `get_all` = global guardrails).
-2. `list_messaging_frameworks` → pull any `use_case` framework whose `summary` fits banking / financial-services buyers via `get_messaging_framework({id})`.
-3. `list_personas` → closest match to retail-banking buyers → `get_persona`.
-4. Grounding: `query_market_research` — query "What do banking technology buyers prioritize
+1. Parallel: `get_brand_voice` + `get_all_messaging_frameworks` (a prospect-facing rewrite is a kickoff).
+2. `list_personas` → closest match to retail-banking buyers → `get_persona`.
+3. Grounding: `query_market_research` — query "What do banking technology buyers prioritize
    when evaluating vendor software?", `keywords: { allOfAny: [["bank", "banking", "financial institution"]] }`.
-5. Write the brief: lead with the persona's priorities and pains, map them to value props from
+4. Write the brief: lead with the persona's priorities and pains, map them to value props from
    the frameworks, enforce voice do/don't rules, and keep it to one page.
-6. Score loop against the chosen persona with `content_type: "solution brief"`; iterate to ~80+;
+5. Score loop against the chosen persona with `content_type: "solution brief"`; iterate to ~80+;
    present before/after scores with the table first.
