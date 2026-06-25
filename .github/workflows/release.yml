@@ -25,6 +25,11 @@ jobs:
         env:
           VERSION: ${{ github.ref_name }}
 
+      - name: Package Claude Tag plugin
+        run: ./scripts/package-plugin.sh
+        env:
+          VERSION: ${{ github.ref_name }}
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v3
         with:

@@ -17,9 +17,13 @@ requirements, not style preferences.
    `references/`, `assets/`) and ship inside the skill's zip.
 4. Run `./scripts/validate-skills.sh` before committing (see Workflow below).
 5. Register the skill where consumers find it:
-   - append `"./skills/<name>"` to the `skills` array in
-     [.claude-plugin/marketplace.json](.claude-plugin/marketplace.json);
    - add a row to the "Available skills" table in [README.md](README.md).
+
+   No `.claude-plugin/` edit is needed: the plugin manifest
+   ([.claude-plugin/plugin.json](.claude-plugin/plugin.json)) and the
+   marketplace entry both auto-discover every `skills/<name>/` directory, so a
+   new skill ships in the per-skill zip, the Cowork package, and the Claude Tag
+   plugin package automatically.
 
 ## Frontmatter constraints
 
@@ -54,8 +58,10 @@ niceties belong in the plugin wrapper (`.claude-plugin/`), not in the skill.
 ## Workflow before committing
 
 1. `./scripts/validate-skills.sh` — must pass (frontmatter, file counts, hygiene).
-2. Optionally `./scripts/package-skills.sh` to preview the per-skill zips in `dist/`
-   (git-ignored), and `./scripts/package-cowork-plugin.sh` for the M365 package.
+2. Optionally preview the artifacts in `dist/` (git-ignored):
+   `./scripts/package-skills.sh` (per-skill zips),
+   `./scripts/package-cowork-plugin.sh` (M365 Cowork package), and
+   `./scripts/package-plugin.sh` (Claude Tag plugin package, `getwhys-skills.zip`).
 3. Releases are cut by pushing a `v*` tag — CI re-validates, builds all zips,
    and attaches them to a GitHub Release. Stable download URLs:
    - `https://github.com/GetWhys-Engineering/agent-skills/releases/latest/download/<skill>.zip`

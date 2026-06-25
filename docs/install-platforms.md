@@ -20,6 +20,7 @@ GetWhys targets are Claude + ChatGPT, plus MS Copilot Cowork org-push).
 | **Claude** (.ai / Desktop / Cowork) | Settings → Skills → upload `<skill>.zip`. Org admins: Org settings → Skills → **+ Add** (provisions all users on all three surfaces). |
 | **ChatGPT** (Business / Enterprise / Edu — beta, not Plus/Pro) | *New skill → Upload from computer* → **Share** with the workspace. |
 | **Microsoft 365 Copilot Cowork** (Frontier preview) | Personal: drop the skill folder in OneDrive `/Documents/Cowork/skills/<name>/`. Org: deploy `getwhys-cowork.zip` — see [install-admin.md](install-admin.md). |
+| **Claude Tag** (Claude in Slack — beta) | Org admins only: upload the **plugin** package `getwhys-skills.zip` via Org settings → Plugins → Upload plugin — see [install-admin.md](install-admin.md). |
 | **Amazon Q Business** | *MY SKILLS → Upload* → select the `SKILL.md` (+ supporting files). |
 | **Perplexity** (Perplexity Computer) | Skills sidebar → *+ Create skill → Upload* → drag in the skill files (≤10 MB). |
 
