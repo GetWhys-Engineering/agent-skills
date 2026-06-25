@@ -34,9 +34,13 @@ Download the skill's `.zip` above, then upload it in settings:
   Claude Cowork (where Cowork is enabled for your org).
 - **ChatGPT (Business/Enterprise — beta):** *New skill → Upload from computer*
   → **Share** with the workspace.
+- **Claude Tag (Claude in Slack — beta):** Org settings → **Plugins** → **Upload
+  plugin** → upload the plugin package
+  [`getwhys-skills.zip`](https://github.com/GetWhys-Engineering/agent-skills/releases/latest/download/getwhys-skills.zip)
+  — a *plugin* zip, distinct from the skill zip above.
 
-Full org-wide flows (including **Microsoft 365 Copilot Cowork** org-push):
-**[docs/install-admin.md](docs/install-admin.md)**.
+Full org-wide flows (including **Microsoft 365 Copilot Cowork** org-push and
+**Claude Tag**): **[docs/install-admin.md](docs/install-admin.md)**.
 
 ### Git install one-liners
 
@@ -62,8 +66,9 @@ Complete per-tool directory matrix:
 
 ## Updating / versioning
 
-Releases are cut as `vX.Y.Z` tags; each release attaches one zip per skill
-(plus the M365 Cowork package). Two URL shapes:
+Releases are cut as `vX.Y.Z` tags; each release attaches one zip per skill, the
+M365 Cowork package (`getwhys-cowork.zip`), and the Claude Tag plugin package
+(`getwhys-skills.zip`). Two URL shapes:
 
 ```
 https://github.com/GetWhys-Engineering/agent-skills/releases/latest/download/<skill>.zip   # always the newest

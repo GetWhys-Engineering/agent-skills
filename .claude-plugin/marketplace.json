@@ -6,9 +6,7 @@
     {
       "name": "getwhys-skills",
       "description": "Companion skills for the GetWhys MCP server",
-      "source": "./",
-      "strict": false,
-      "skills": ["./skills/validate-gtm-output"]
+      "source": "./"
     }
   ]
 }

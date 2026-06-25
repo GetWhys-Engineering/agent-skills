@@ -20,7 +20,10 @@ https://github.com/GetWhys-Engineering/agent-skills/releases/latest/download/<sk
 https://github.com/GetWhys-Engineering/agent-skills/releases/download/vX.Y.Z/<skill>.zip   ← pinned version
 ```
 
-The **same zip** works for both Claude and ChatGPT below.
+The **same `<skill>.zip`** works for Claude and ChatGPT (§2a/§2b). Claude Tag
+(§2d) and Microsoft 365 Copilot Cowork (§2c) each load a different package from
+the same Releases page — **`getwhys-skills.zip`** and **`getwhys-cowork.zip`**
+respectively.
 
 ## 2a. Claude.ai / Claude Desktop / Claude Cowork (Team & Enterprise)
 
@@ -66,6 +69,24 @@ bundling *all* GetWhys skills (same Releases page).
 
 Per-user alternative (no admin needed): drop a skill folder into OneDrive at
 `/Documents/Cowork/skills/<name>/SKILL.md` — it's auto-discovered.
+
+## 2d. Claude Tag (Claude in Slack)
+
+> Claude Tag (Anthropic's Slack agent) is in **public beta** — this UI may change.
+
+Claude Tag loads **plugins**, not skill zips, so it uses a different artifact:
+**`getwhys-skills.zip`** (same Releases page). The §2a skill zip is rejected by
+the plugin uploader, and a *public*-repo plugin marketplace can't be registered
+org-wide — uploading the plugin package is the supported path.
+
+1. Download **`getwhys-skills.zip`** from
+   [Releases](https://github.com/GetWhys-Engineering/agent-skills/releases).
+2. **Org settings → Plugins → Add plugins → Upload plugin** → **Upload to a new
+   marketplace**, give it a name (e.g. `getwhys`) → select the zip → **Upload**.
+3. Enable **`getwhys-skills`** for the scope (workspace or channel) where Claude
+   Tag should use it.
+4. **Connect the GetWhys MCP separately** as a custom connection in that scope's
+   Access bundle (via GetWhys onboarding) — the skill is inert without it.
 
 ## What "org-wide" actually means
 
