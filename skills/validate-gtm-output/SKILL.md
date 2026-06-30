@@ -38,7 +38,7 @@ Match the user's ask to a row, then **read the row's reference file before calli
 
 - **Handle discipline**: persona handles (`persona:<handle>`) always come from `list_personas` output — never guessed or invented; unknown handles fail the call.
 - **One focused question per `query_market_research` call**: decompose multi-part asks into parallel calls — never pack comparisons or "and what about X" clauses into one `query`.
-- **Dates go in `temporalRange`** (YYYY-MM-DD), never in `keywords` ("recent", "2026", "last quarter" are not keywords).
+- **Dates go in `temporalRange`** (YYYY-MM-DD), never in `keywords` ("recent", "2026", "last quarter" are not keywords); `temporalRange` is optional — omit it when there's no time window.
 - **Content-gen kickoff is always the pair** `get_brand_voice` + `get_all_messaging_frameworks` (parallel) — never `list_messaging_frameworks` for content generation, and never a single framework for general "on-brand" copy.
 - **`id` XOR `title`**: `get_messaging_framework` and `score_content`'s framework parameters take exactly one identifier, never both.
 - **Parallelize independent calls**: research decompositions, the kickoff pair, persona-dimension groups.

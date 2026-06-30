@@ -86,10 +86,11 @@ Short terms/phrases likely to appear **verbatim** in the underlying documents.
 - **Never express temporal filtering in keywords.** No "recent", "last month", "2026",
   "Q1 2026", "April 24" — these don't match document text reliably and waste a keyword slot.
 
-### `temporalRange`
+### `temporalRange` (optional)
 
-Inclusive `startDate`/`endDate` bounds in **YYYY-MM-DD**. Set the whole object to null when the
-user implied no time window — **never invent a default broad range**.
+Inclusive `startDate`/`endDate` bounds in **YYYY-MM-DD**. The field is optional: when the user
+implied no time window, **omit it entirely or set the whole object to null — the two are
+equivalent**. Either way, **never invent a default broad range**.
 
 - Resolve relative phrases against the current date: "this week" → start-of-week → today;
   "since January 1, 2026" → `{ startDate: "2026-01-01", endDate: "<today>" }`.
