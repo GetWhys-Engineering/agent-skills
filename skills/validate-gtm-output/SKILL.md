@@ -36,7 +36,7 @@ Match the user's ask to a row, then **read the row's reference file before calli
 
 ## Rules that always apply
 
-- **Handle discipline**: persona handles (`persona:<handle>`) always come from `list_personas` output — never guessed or invented; unknown handles fail the call. When no handle fits — the list is empty, *or* it's non-empty and nothing matches the content's audience — take the persona-free path below. Don't stop, don't ask, don't invent one.
+- **Handle discipline**: persona handles (`persona:<handle>`) always come from `list_personas` output — never guessed or invented; unknown handles fail the call. When no handle fits — the list is empty, *or* nothing in it matches the content's audience — take the persona-free path (`references/degraded-mode.md`). Don't stop, don't ask, don't invent one.
 - **One focused question per `query_market_research` call**: decompose multi-part asks into parallel calls — never pack comparisons or "and what about X" clauses into one `query`.
 - **Dates go in `temporalRange`** (YYYY-MM-DD), never in `keywords` ("recent", "2026", "last quarter" are not keywords); `temporalRange` is optional — omit it when there's no time window.
 - **Content-gen kickoff is always the pair** `get_brand_voice` + `get_all_messaging_frameworks` (parallel) — never `list_messaging_frameworks` for content generation, and never a single framework for general "on-brand" copy.
@@ -44,19 +44,4 @@ Match the user's ask to a row, then **read the row's reference file before calli
 - **Parallelize independent calls**: research decompositions, the kickoff pair, persona-dimension groups.
 - **Relay rules** for every `query_market_research` answer: include the trailing **"GetWhys Sources" paragraph verbatim** (never paraphrase, abridge, or omit it), surface the **`view_in_getwhys` link** when present, and preserve the **inline † grounding markers**.
 - **`no_data: true`** → no matching evidence; do NOT fabricate from general knowledge. Rephrase and retry once at most, then tell the user plainly what the corpus didn't cover.
-
-## Missing inputs degrade the task — they never block it
-
-Empty-workspace responses ("No personas found…", "No brand voice characteristics configured…", "No messaging frameworks configured…") are **answers, not errors** — the org hasn't configured that artifact. Don't retry, and don't let it cancel the work:
-
-- **Never end a turn having delivered nothing.** Deliver the largest useful subset, then offer the missing piece as added rigor.
-- **Never make configuring GetWhys a precondition**, and never end on a question the user must answer before anything ships. The gap is a caption on the work — one line before it, one line after — not a gate in front of it.
-- **A required parameter belongs to a tool, not to the task.** One unavailable tool removes one check, not the goal. Validation is a ladder: use the highest rung available and say which one you used.
-- **Name the substitute you used** — the audience you read the content as targeting, plain B2B clarity standing in for a configured voice — so the user can judge the substitution and act on it.
-
-| Missing | What still works |
-|---|---|
-| **No relevant persona** — empty `list_personas`, *or* non-empty with nothing matching the content's audience | Everything except `get_persona` / `score_content`. **(1)** Open with one line naming the audience the content reads as written for — role/seniority, function, segment, the problem they own — and that no configured persona covers it. **(2)** Deliver the analysis, grounded by `query_market_research` on that audience, mirroring `score_content`'s shape (per-dimension verdicts → gaps → recommendations) but with **qualitative** verdicts (strong / mixed / gap) — never a 0–100 number unless `score_content` actually ran. **(3)** Close by offering to add that persona in the GetWhys app as the rigor upgrade that unlocks the real score. Never invent a `persona:<handle>`; a *close-enough* configured persona is a different case — use it and say which |
-| No brand voice | Frameworks, personas, research, scoring. Draft to plain B2B clarity and say that's the standard you applied |
-| No messaging frameworks | Voice, personas, research, scoring. Draft from persona + research; flag any claim you couldn't check against approved positioning |
-| Nothing configured | `query_market_research` alone grounds *and* validates content end to end — audience pains, the language buyers use, objections, proof points |
+- **Missing inputs degrade the task — they never block it.** Empty-workspace responses ("No personas found…", "No brand voice characteristics configured…", "No messaging frameworks configured…") are answers, not errors: don't retry, and never end a turn having delivered nothing or make configuring GetWhys a precondition. Deliver the largest useful subset, name in one line the substitute you used (the audience you read the content as targeting; plain B2B clarity standing in for a configured voice), and close with the GetWhys app pointer as *added rigor*. Never report a 0–100 score unless `score_content` actually ran. Read `references/degraded-mode.md` for the per-artifact substitutions and the response shape.

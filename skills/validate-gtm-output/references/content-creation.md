@@ -61,8 +61,8 @@ neither ends the turn — persona *targeting* is gone, the task is not.
 - **Never invent a `persona:<handle>`.** A *close-enough* configured persona is a different
   case — use it and say which one you picked and why; only fall to the inferred read when
   nothing in the list is relevant.
-- **Close by offering to build the missing persona** (`references/buyer-personas.md` workflow
-  (b)) as the rigor upgrade, never as a prerequisite.
+- **Close by offering to build the missing persona** (`buyer-personas.md` workflow (b)) as the
+  rigor upgrade, never as a prerequisite. `degraded-mode.md` has the response shape.
 
 ## Step 3 — optional research grounding
 
@@ -139,17 +139,9 @@ validation pass, not a consolation prize.
 Relay rules apply to any research you cite in conversation — Sources paragraph verbatim,
 `view_in_getwhys` link, † markers preserved.
 
-**Response shape** (this is what the whole rung is for):
-
-1. **One line, first** — the audience you read the doc as targeting, and that no configured
-   persona covers it. One line. Not a paragraph, not an apology, not a question.
-2. **The analysis** — mirror `score_content`'s shape (per-dimension verdicts → gaps →
-   recommendations) so it reads as the same product. Keep the verdicts **qualitative**:
-   strong / mixed / gap. **Never emit a 0–100 figure** that could be mistaken for a GetWhys
-   score — the score is exactly what the upgrade buys, so faking one destroys the offer.
-3. **One closing line** — adding that persona in the GetWhys app unlocks the persona-fit score
-   and the scoring iteration loop. Frame it as *"if you want more rigor"*, never as *"this
-   analysis is incomplete"*.
+Present the result in the three-beat shape in `degraded-mode.md` — inferred audience and the
+gap in one line first, then the analysis with **qualitative** verdicts (never a 0–100 figure),
+then the persona-as-rigor-upgrade close.
 
 ## Playbook — score existing content
 
