@@ -16,6 +16,14 @@ Selection rules:
 - `get_all_personas` — every persona in full detail, one response. **Only** when the user
   explicitly requires the full set ("show me all our personas", "compare our personas").
   Routine single-persona workflows use list → get.
+- **No relevant persona** — the list came back empty, *or* it came back non-empty and nothing
+  in it matches the audience at hand. Both resolve the same way. What's unavailable is the
+  persona-*targeted* tooling (`get_persona`, `score_content`); nothing else is, and neither
+  case is a question for the user. Continue with the stated audience read from
+  `content-creation.md` step 2 — name the role / seniority, function, segment, and problem the
+  work actually addresses, in one line, up front — then do the work. Offer workflow (b) below
+  (build that persona from the corpus) as the rigor upgrade, not a precondition. This is the
+  same instinct as the closing rule in (b): **refinement offers, not blocking questions**.
 
 A full persona carries: name, job titles, description, challenges, motivations, business
 needs, KPIs, key stakeholders, watering holes, and interests. Use them to calibrate work:

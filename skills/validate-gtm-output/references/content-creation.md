@@ -30,8 +30,11 @@ single word. This pair is non-negotiable for publishable content:
   org's voice) unless the user explicitly scopes the task to one named framework.
 
 Empty results ("No brand voice characteristics configured…", "No messaging frameworks
-configured…") mean the org hasn't set them up — proceed without that input, mention it once,
-and point the user to the GetWhys app.
+configured…") mean the org hasn't set them up. Proceed without that input — no voice means
+draft to plain B2B clarity; no frameworks means draft from persona + research and flag any
+claim you couldn't check against approved positioning. Say once, in a line, which substitute
+you applied, and close by pointing at the GetWhys app as added rigor — never hold the draft
+back waiting for the user to configure something.
 
 ## Step 2 — persona resolution
 
@@ -40,6 +43,26 @@ the full attributes. The persona's challenges, motivations, business needs, and 
 drafting inputs, not trivia — the draft should speak to them directly. If the user named no
 audience and the org has several personas, ask which one (or infer from the content's subject
 and say so). Skip persona resolution only when the content genuinely has no target buyer.
+
+### No relevant persona
+
+Two cases resolve identically: `list_personas` comes back empty, **or** it comes back non-empty
+and nothing in it matches the content's audience. Neither is a question for the user, and
+neither ends the turn — persona *targeting* is gone, the task is not.
+
+- **Name the audience the content itself addresses**, as a stated read: role / seniority,
+  function, segment, and the problem they own. This is a deliverable, not internal scaffolding
+  — it goes in the response, in one line, *before* the analysis, with the gap in the same
+  breath: "this reads as written for [audience]; your GetWhys workspace has no persona
+  covering that audience."
+- **When the piece makes buyer claims, spend 1–2 `query_market_research` calls** on that role /
+  segment for the pains, priorities, and language a configured persona would have carried.
+  Those answers become the drafting inputs the persona's fields would have been.
+- **Never invent a `persona:<handle>`.** A *close-enough* configured persona is a different
+  case — use it and say which one you picked and why; only fall to the inferred read when
+  nothing in the list is relevant.
+- **Close by offering to build the missing persona** (`references/buyer-personas.md` workflow
+  (b)) as the rigor upgrade, never as a prerequisite.
 
 ## Step 3 — optional research grounding
 
@@ -62,11 +85,19 @@ Combine the three inputs:
 - **Persona**: lead with their challenges and motivations; make KPIs the payoff of the value
   proposition; match the seniority/register of the audience.
 
-## Step 5 — score loop
+## Step 5 — validate
+
+Validation is a **ladder, not one rung**. `score_content` is the strongest rung; the evidence
+check below stands on its own. Use the highest rung available and say which one you used — a
+missing persona costs you one rung, never the step.
+
+### Rung 1 — score loop (a relevant persona exists)
 
 1. Call `score_content` with:
    - `content` — the draft.
-   - `persona_handle` — from step 2 (e.g. `persona:revenue-leader`). Required; never guessed.
+   - `persona_handle` — from step 2 (e.g. `persona:revenue-leader`). Required by this tool;
+     never guessed. No relevant handle → this rung is unavailable, so drop to rung 2 rather
+     than inventing one or stopping.
    - `content_type` — optional but useful: "email subject line", "ad copy", "blog post",
      "landing page", "LinkedIn post".
    - `messaging_framework_id` **or** `messaging_framework_title` — optional, exactly one, to
@@ -78,7 +109,7 @@ Combine the three inputs:
    meets the user's threshold — default **~80** if they didn't set one. Report the
    before/after scores so the user sees the trajectory.
 
-### Reading the `score_content` response
+#### Reading the `score_content` response
 
 The response carries `overall_score` (0–100), a set of `dimensional_scores`, and
 `recommendations`, plus `brand_voice_match` and `framework_match` when applicable. The rubric —
@@ -88,15 +119,49 @@ rather than describing weights from memory. `brand_voice_match` is populated whe
 configured brand voice (null otherwise); `framework_match` is pass/fail when you passed a
 framework (null otherwise).
 
+### Rung 2 — evidence check (no relevant persona)
+
+`score_content` is unavailable, so validate against the corpus instead. This is a real
+validation pass, not a consolation prize.
+
+1. **2–3 parallel `query_market_research` calls** on the audience you named in step 2 (one
+   focused question each):
+   - the pains and priorities that audience reports in this category;
+   - the language they actually use for the problem;
+   - the objections they raise and the proof points that move them.
+2. **Review the draft against those answers, claim by claim** — mark each as *supported*,
+   *contradicted*, or *never addressed*. "Never addressed" is usually the most useful column:
+   it's the pain the buyer leads with and the draft never mentions.
+3. **Hand-check the configured guardrails that never needed a persona**: brand-voice do/don't
+   rules line by line, and framework claims against approved positioning. Skip whichever of
+   those the org hasn't configured.
+
+Relay rules apply to any research you cite in conversation — Sources paragraph verbatim,
+`view_in_getwhys` link, † markers preserved.
+
+**Response shape** (this is what the whole rung is for):
+
+1. **One line, first** — the audience you read the doc as targeting, and that no configured
+   persona covers it. One line. Not a paragraph, not an apology, not a question.
+2. **The analysis** — mirror `score_content`'s shape (per-dimension verdicts → gaps →
+   recommendations) so it reads as the same product. Keep the verdicts **qualitative**:
+   strong / mixed / gap. **Never emit a 0–100 figure** that could be mistaken for a GetWhys
+   score — the score is exactly what the upgrade buys, so faking one destroys the offer.
+3. **One closing line** — adding that persona in the GetWhys app unlocks the persona-fit score
+   and the scoring iteration loop. Frame it as *"if you want more rigor"*, never as *"this
+   analysis is incomplete"*.
+
 ## Playbook — score existing content
 
 The route for "score this draft", "will this resonate with [audience]?", and "how would
 [persona] react to this?" when a draft is attached and no drafting was asked for:
 
 1. Resolve the persona: `list_personas` → match the stated audience to a handle. Never guess
-   `persona:<handle>` IDs; if no persona matches, ask the user which to use rather than
-   inventing one.
-2. Call `score_content` with the same parameters as step 5 above (`content`, `persona_handle`,
+   `persona:<handle>` IDs. Asking the user is for **disambiguating among plausible matches** —
+   two personas could fit and you need to know which. When the list is empty, or nothing in it
+   is relevant to the content's audience, there is nothing to ask about: take the step 2
+   *No relevant persona* branch, run the rung-2 evidence check, and say that's what you did.
+2. Call `score_content` with the same parameters as rung 1 above (`content`, `persona_handle`,
    optional `content_type`, optional framework by `id` XOR `title`).
 3. **Present table-first**: dimensional scores as a table or bar chart before any written
    summary, then `persona_fit_summary` and `recommendations`.

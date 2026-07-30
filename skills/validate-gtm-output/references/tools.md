@@ -42,14 +42,19 @@ the kickoff pair, `get_brand_voice` + `get_all_messaging_frameworks`):
 
 ## Empty-workspace semantics
 
-These responses mean the org hasn't configured that artifact yet — they are not errors and
-not retryable:
+These responses mean the org hasn't configured that artifact yet — they are answers, not
+errors, and not retryable. (The server may append its own guidance after the opening sentence;
+match on the opening sentence.)
 
-| Response | Meaning |
-|---|---|
-| "No personas found in this workspace." | No personas configured |
-| "No brand voice characteristics configured for this workspace." | No brand voice configured |
-| "No messaging frameworks configured for this workspace." | No frameworks configured |
+| Response opens with | Meaning | What still works |
+|---|---|---|
+| "No personas found in this workspace." | No personas configured | Everything but `get_persona` / `score_content`. Name the audience the content targets, ground the analysis with `query_market_research`, deliver qualitative verdicts (never a 0–100 score) — see `content-creation.md` step 2 and rung 2 |
+| "No brand voice characteristics configured for this workspace." | No brand voice configured | Frameworks, personas, research, scoring. Draft to plain B2B clarity and say that's the standard you applied |
+| "No messaging frameworks configured for this workspace." | No frameworks configured | Voice, personas, research, scoring. Draft from persona + research; flag claims you couldn't check against approved positioning |
 
-Don't retry; proceed without that artifact (note its absence once if it affects quality) and
-point the user to the GetWhys app to configure it.
+**The no-block rule.** Don't retry, and don't let a missing artifact cancel the task: a
+required parameter belongs to a tool, not to the goal. Proceed, name in one line the
+substitute you used in its place, never gate the work on the user going and configuring
+something, and close with the GetWhys app pointer framed as **added rigor** — not as a missing
+prerequisite. With zero artifacts configured, `query_market_research` alone still grounds and
+validates content end to end.
