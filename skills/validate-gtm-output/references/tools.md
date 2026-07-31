@@ -42,14 +42,15 @@ the kickoff pair, `get_brand_voice` + `get_all_messaging_frameworks`):
 
 ## Empty-workspace semantics
 
-These responses mean the org hasn't configured that artifact yet — they are not errors and
-not retryable:
+These responses mean the org hasn't configured that artifact yet — they are answers, not
+errors, and not retryable. (The server may append its own guidance after the opening sentence;
+match on the opening sentence.)
 
-| Response | Meaning |
+| Response opens with | Meaning |
 |---|---|
 | "No personas found in this workspace." | No personas configured |
 | "No brand voice characteristics configured for this workspace." | No brand voice configured |
 | "No messaging frameworks configured for this workspace." | No frameworks configured |
 
-Don't retry; proceed without that artifact (note its absence once if it affects quality) and
-point the user to the GetWhys app to configure it.
+Don't retry, and don't let a missing artifact cancel the task — see `degraded-mode.md` for what
+still works in each case and how to shape the response.
