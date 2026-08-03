@@ -1,7 +1,7 @@
 {
   "name": "agent-skills",
   "owner": { "name": "GetWhys", "email": "hello@getwhys.io" },
-  "metadata": { "description": "GetWhys agent skills", "version": "0.3.0" },
+  "metadata": { "description": "GetWhys agent skills", "version": "0.4.0" },
   "plugins": [
     {
       "name": "getwhys-skills",
