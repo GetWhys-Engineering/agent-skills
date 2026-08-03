@@ -15,7 +15,9 @@ question, and the response is already synthesized prose with grounding markers.
      companies buy CRM. A `query` that names both sides ("mid-market versus enterprise …")
      is still a packed comparison — split it.
    - **Answer the ask as posed.** Don't pre-emptively add angles (pricing, buying committees)
-     the user didn't raise — deliver the answer, then offer follow-up angles.
+     the user didn't raise — deliver the answer, then offer follow-up angles. This bounds
+     *angles*, not *claims*: a claim you're about to write with no pull behind it isn't an
+     unrequested angle, it's an ungrounded assertion — see Coverage re-check below.
 2. Per call: `query` = the semantic intent as a natural-language question (no retrieval verbs
    like "find" or "show me"); `explain` = a one-line rationale for this specific call;
    distinctive entities and their variants go in `keywords.allOfAny`; time windows go in
@@ -149,12 +151,40 @@ Each call returns:
 Raw transcripts and verbatim quotes are intentionally not exposed across this boundary —
 don't ask for them or imply they're retrievable.
 
+## Coverage re-check — when new material arrives mid-task
+
+A long task accumulates evidence, and partway through the risk inverts: the danger stops being
+under-querying at the start and becomes writing *new* claims off evidence gathered for
+*different* questions. Coverage is per **claim**, not per task — ten pulls on a topic do not
+cover the eleventh claim about it.
+
+Run this whenever new material enters work already in flight: more slides, screenshots, or
+documents pasted; a new competitor, capability, or segment named; the user widening scope.
+
+1. **List the substantive claims the new material makes you responsible for.** A claim is
+   anything you'd assert about buyer behavior, priorities, reactions, or economics.
+2. **For each, name the prior pull whose `query` actually asked it.** If the closest you can
+   name is an *adjacent* pull — same audience, different question — the claim is **uncovered**.
+   Reasoning outward from adjacent evidence is the failure this check exists to catch, and in
+   the finished output it is indistinguishable from a grounded answer.
+3. **Issue one focused net-new call per uncovered claim, in parallel, before writing.**
+
+Redundant is cheaper than absent: a pull that merely confirms what you had costs one round
+trip, while a skipped pull costs a conclusion the user has to catch for you. Landing on zero
+uncovered claims is a legitimate outcome — but reach it by naming the pulls that cover each
+claim, not by noticing you already have a lot of evidence.
+
+Report the new answers the way you report any research: the answer plus its "GetWhys Sources"
+paragraph. The check itself is internal scaffolding — don't narrate running it, and don't
+preface the work with an account of what you'd reused before.
+
 ## Retry etiquette
 
 - `no_data: true` → rephrase **once at most**: broaden the angle, drop an over-narrow AND
   group, or fix a likely keyword mismatch (missing variant, misspelled entity). If the retry
   also returns no data, tell the user plainly what the corpus didn't cover — never fabricate.
 - An answer that's on-topic but thin is a result, not an error — relay it; don't re-query the
-  same question hoping for more.
+  same question hoping for more. A *different* question raised by new material is not a
+  re-query: thin coverage of one claim is not coverage of the next.
 - Don't re-issue the identical call after a transport error without checking whether the first
   call already returned.

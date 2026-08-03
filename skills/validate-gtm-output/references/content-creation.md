@@ -64,8 +64,9 @@ neither ends the turn — persona *targeting* is gone, the task is not.
 - **Close by offering to build the missing persona** (`buyer-personas.md` workflow (b)) as the
   rigor upgrade, never as a prerequisite. `degraded-mode.md` has the response shape.
 
-## Step 3 — optional research grounding
+## Step 3 — research grounding
 
+Optional only when the piece makes no buyer claims; required for every claim it does make.
 When the piece makes claims about buyer pain, market reality, or competitor behavior, ground
 them with focused `query_market_research` calls (one question per call, in parallel — see
 `market-research.md`). Typical grounding asks: the target persona's top pain points in this
@@ -142,6 +143,23 @@ Relay rules apply to any research you cite in conversation — Sources paragraph
 Present the result in the three-beat shape in `degraded-mode.md` — inferred audience and the
 gap in one line first, then the analysis with **qualitative** verdicts (never a 0–100 figure),
 then the persona-as-rigor-upgrade close.
+
+## Re-entering the workflow on later turns
+
+The five steps are a first pass, not the whole task. A long artifact gets iterated over many
+turns, and each turn re-enters at the step it actually touches:
+
+- **New material arrives** (more slides, screenshots, or documents pasted; a new competitor,
+  capability, or segment named) → re-enter at **step 3** and run the Coverage re-check in
+  `market-research.md` before writing. This is the most-missed edge: *"here are more slides"*
+  reads as a writing turn, but the claims it puts you on the hook for make it a research turn.
+  Prior pulls on the same artifact don't cover claims they never asked about.
+- **A new audience is named** → re-enter at step 2 (persona resolution), then step 3 for that
+  audience's pains and language.
+- **Revise, restyle, or restructure with no new claims** → step 4 only. No new pulls.
+
+Same convention as the scoring-to-drafting hand-off below: a turn's shape determines where you
+re-enter, not how far along the artifact is.
 
 ## Playbook — score existing content
 
