@@ -9,14 +9,32 @@ afterward whether it has anything useful. Evidence that arrives after the draft 
 decorate an angle already chosen from general knowledge. The pulls that pick the win themes
 happen *before* a word is drafted.
 
-## Addition 1 — read the requirements first
+## Addition 1 — read the RFP before anything else
 
-Before any call, list what the document actually asks for: the numbered requirements or
-questions, the stated evaluation criteria and their weightings, the submission scope, and any
-incumbent or competitor the document names.
+The RFP usually arrives as **files attached to the conversation** — a PDF, a requirements
+spreadsheet, a portal export. Read them before any GetWhys call. Scoping research to a
+summary of the document instead of the document is how this route quietly goes wrong.
 
-That list is the spine of everything below — research is scoped to it, coverage is measured
-against it, and the draft is assembled from it.
+**Files are attached** → open every one, and say which you read. The requirements often sit in
+a different file from the narrative brief (a spec matrix beside a background PDF), so stopping
+at the first attachment loses the part that governs scoring. Extract:
+
+- the numbered requirements or questions;
+- the stated evaluation criteria and their weightings;
+- the submission scope, format, and deadline;
+- any incumbent, competitor, or current vendor the document names.
+
+**Nothing is attached** → don't stall, and don't invent requirements. Say in one line that no
+RFP document came through, then do the work the user's description already supports — segment
+research, persona resolution, candidate win themes, a draft executive summary — and close by
+naming what the file would sharpen: the real evaluation criteria and weightings, and the
+requirement list that drives coverage. Ask for it as an upgrade, never as a precondition. Same
+instinct as `degraded-mode.md` — a missing input costs a step, not the task.
+
+Either way, the requirement list is the spine of everything below: research is scoped to it,
+coverage is measured against it, and the draft is assembled from it. Working without the
+document, say plainly that requirement coverage is unverified rather than letting the draft
+read as complete.
 
 ## Addition 2 — the issuer is one named account, not a segment
 
