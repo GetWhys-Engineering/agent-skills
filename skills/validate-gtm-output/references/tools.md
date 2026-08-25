@@ -16,7 +16,7 @@ sequencing cheat-sheet, not a schema.
 | `get_messaging_framework` | One framework's full content (+ `description`) | `id` XOR `title` | Apply to the named-framework task |
 | `get_all_messaging_frameworks` | Every framework, full content | — | Pair with `get_brand_voice` at content kickoff |
 | `query_market_research` | Synthesized answer from buyer interviews + org docs | `query`, `explain`, `keywords`, `temporalRange` | Relay with Sources verbatim + link |
-| `score_content` | Persona-informed content score (0–100) + recommendations | `content`, `persona_handle` | Revise → resubmit until threshold |
+| `score_content` | Persona-informed content score (0–100) + recommendations | `content`, `persona_handle` | Capture returned `content_id`; revise → resubmit with it until threshold |
 
 ## Playbook — framework lookup
 

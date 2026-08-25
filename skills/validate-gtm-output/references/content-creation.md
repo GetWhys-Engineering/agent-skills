@@ -104,11 +104,16 @@ missing persona costs you one rung, never the step.
    - `messaging_framework_id` **or** `messaging_framework_title` — optional, exactly one, to
      additionally score against a specific framework. Use `list_messaging_frameworks` to find
      ids; a title-collision error means re-call with one of the returned ids.
+   Capture the returned `content_id` after this first successful call. If the call fails or
+   returns no ID, do not invent one.
 2. **Present table-first**: render `dimensional_scores` as a table or bar chart *before* any
    written summary — never a wall of text. Then `persona_fit_summary`, then `recommendations`.
-3. Revise the draft applying the recommendations, resubmit, and repeat until `overall_score`
-   meets the user's threshold — default **~80** if they didn't set one. Report the
-   before/after scores so the user sees the trajectory.
+3. Revise the draft applying the recommendations, then resubmit with that `content_id`
+   unchanged. Reuse it for every revision of this artifact against this persona, even after an
+   extensive rewrite; never reuse it for another artifact or persona. Repeat until
+   `overall_score` meets the user's threshold — default **~80** if they didn't set one. Report
+   the before/after scores so the user sees the trajectory. Reuse IDs present in conversation
+   context; clients must persist and supply them to continue a chain across sessions.
 
 #### Reading the `score_content` response
 
@@ -172,7 +177,11 @@ The route for "score this draft", "will this resonate with [audience]?", and "ho
    is relevant to the content's audience, there is nothing to ask about: take the step 2
    *No relevant persona* branch, run the rung-2 evidence check, and say that's what you did.
 2. Call `score_content` with the same parameters as rung 1 above (`content`, `persona_handle`,
-   optional `content_type`, optional framework by `id` XOR `title`).
+   optional `content_type`, optional framework by `id` XOR `title`). After the first successful
+   call, capture its `content_id`; if a revision of this artifact is scored against the same
+   persona, pass that ID unchanged, even after an extensive rewrite. Never reuse it for another
+   artifact or persona, and never invent one when a call fails or returns none. Clients must
+   persist and supply the ID for cross-session reuse.
 3. **Present table-first**: dimensional scores as a table or bar chart before any written
    summary, then `persona_fit_summary` and `recommendations`.
 
@@ -190,8 +199,10 @@ content-generation kickoff: switch to the full workflow at step 1.
 3. Grounding (optional, one call): `query_market_research` — query "What frustrations do IT
    buyers report around single sign-on and authentication?", `keywords: { allOfAny: [["SSO", "single sign-on", "single sign on"]] }`.
 4. Draft ~3 variants applying voice + frameworks + persona pains.
-5. `score_content({ content, persona_handle: "persona:it-director", content_type: "LinkedIn post" })`
-   → table of dimensional scores → revise → resubmit → deliver the winner with its score.
+5. `first = score_content({ content, persona_handle: "persona:it-director", content_type: "LinkedIn post" })`;
+   capture `content_id = first.content_id` → table of dimensional scores → revise →
+   `score_content({ content: revised_content, persona_handle: "persona:it-director", content_type: "LinkedIn post", content_id })`
+   → deliver the winner with its score.
 
 ## Worked example 2 — sales solution brief for a new audience
 
@@ -203,5 +214,7 @@ content-generation kickoff: switch to the full workflow at step 1.
    when evaluating vendor software?", `keywords: { allOfAny: [["bank", "banking", "financial institution"]] }`.
 4. Write the brief: lead with the persona's priorities and pains, map them to value props from
    the frameworks, enforce voice do/don't rules, and keep it to one page.
-5. Score loop against the chosen persona with `content_type: "solution brief"`; iterate to ~80+;
-   present before/after scores with the table first.
+5. `first = score_content({ content, persona_handle, content_type: "solution brief" })`; capture
+   `content_id = first.content_id`, then pass it unchanged in each
+   `score_content({ content: revised_content, persona_handle, content_type: "solution brief", content_id })`
+   call; iterate to ~80+ and present before/after scores with the table first.
