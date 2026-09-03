@@ -9,6 +9,7 @@
 #   - `description`: non-empty, <=1024 chars, no XML tags
 #   - <200 files per skill directory
 #   - no .DS_Store / __MACOSX / obvious secret patterns
+#   - root .mcp.json is the credential-free GetWhys remote HTTP declaration
 #
 # Exits non-zero on any violation. Runs on macOS bash 3.2 and Linux.
 
@@ -16,6 +17,7 @@ set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 SKILLS_DIR="$REPO_ROOT/skills"
+MCP_CONFIG="$REPO_ROOT/.mcp.json"
 
 ERRORS=0
 
@@ -27,6 +29,34 @@ fail() {
 if [ ! -d "$SKILLS_DIR" ]; then
   echo "FAIL: skills/ directory not found at $SKILLS_DIR" >&2
   exit 1
+fi
+
+if [ ! -f "$MCP_CONFIG" ]; then
+  fail "missing root .mcp.json"
+else
+  if ! python3 - "$MCP_CONFIG" <<'PY'
+import json, sys
+
+try:
+    with open(sys.argv[1]) as f:
+        config = json.load(f)
+except (OSError, json.JSONDecodeError) as error:
+    sys.exit(f"invalid JSON: {error}")
+
+expected = {
+    "mcpServers": {
+        "getwhys": {
+            "type": "http",
+            "url": "https://api.getwhys.io/mcp/org",
+        }
+    }
+}
+if config != expected:
+    sys.exit("must contain only the credential-free GetWhys HTTP server declaration")
+PY
+  then
+    fail ".mcp.json is invalid"
+  fi
 fi
 
 # Extract a single-line frontmatter value for key $2 from SKILL.md $1.

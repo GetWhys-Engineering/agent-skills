@@ -4,6 +4,7 @@
 #
 # Produces dist/getwhys-skills.zip, a self-contained plugin:
 #   .claude-plugin/plugin.json — the plugin manifest (version injected)
+#   .mcp.json                  — credential-free remote MCP declaration
 #   skills/<name>/             — every skill folder, copied verbatim
 #
 # This is the artifact the claude.ai org *Plugins* uploader (and Claude Tag)
@@ -12,7 +13,6 @@
 # (package-cowork-plugin.sh). Skills load via the default skills/ scan, so
 # plugin.json needs no skills array.
 #
-# No MCP config ever ships from here.
 # VERSION env var (or a vX.Y.Z git tag stripped of the leading v) sets the
 # manifest version; defaults to 0.1.0.
 
@@ -21,6 +21,7 @@ set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 SKILLS_DIR="$REPO_ROOT/skills"
 PLUGIN_MANIFEST="$REPO_ROOT/.claude-plugin/plugin.json"
+MCP_CONFIG="$REPO_ROOT/.mcp.json"
 DIST_DIR="$REPO_ROOT/dist"
 STAGE_DIR="$DIST_DIR/.plugin-stage"
 OUT_ZIP="$DIST_DIR/getwhys-skills.zip"
@@ -32,6 +33,29 @@ if [ ! -f "$PLUGIN_MANIFEST" ]; then
   echo "FAIL: missing .claude-plugin/plugin.json" >&2
   exit 1
 fi
+
+if [ ! -f "$MCP_CONFIG" ]; then
+  echo "FAIL: missing .mcp.json" >&2
+  exit 1
+fi
+
+python3 - "$MCP_CONFIG" <<'PY'
+import json, sys
+
+with open(sys.argv[1]) as f:
+    config = json.load(f)
+
+expected = {
+    "mcpServers": {
+        "getwhys": {
+            "type": "http",
+            "url": "https://api.getwhys.io/mcp/org",
+        }
+    }
+}
+if config != expected:
+    sys.exit("FAIL: .mcp.json must contain only the credential-free GetWhys HTTP server declaration")
+PY
 
 # --- collect skill dirs ---
 SKILL_NAMES=""
@@ -51,6 +75,8 @@ fi
 # --- stage the package ---
 rm -rf "$STAGE_DIR" "$OUT_ZIP"
 mkdir -p "$STAGE_DIR/.claude-plugin" "$STAGE_DIR/skills"
+
+cp "$MCP_CONFIG" "$STAGE_DIR/.mcp.json"
 
 for name in $SKILL_NAMES; do
   cp -R "$SKILLS_DIR/$name" "$STAGE_DIR/skills/$name"
@@ -74,9 +100,29 @@ with open(out, "w") as f:
     f.write("\n")
 PY
 
-# --- zip (.claude-plugin/ + skills/ at the package root) ---
+# --- zip (.claude-plugin/ + .mcp.json + skills/ at the package root) ---
 (cd "$STAGE_DIR" && zip -r -X -q "$OUT_ZIP" . \
   -x '*.DS_Store' -x '*__MACOSX*')
 rm -rf "$STAGE_DIR"
+
+python3 - "$OUT_ZIP" <<'PY'
+import json, sys, zipfile
+
+with zipfile.ZipFile(sys.argv[1]) as archive:
+    if ".mcp.json" not in archive.namelist():
+        sys.exit("FAIL: packaged plugin is missing root-level .mcp.json")
+    config = json.loads(archive.read(".mcp.json"))
+
+expected = {
+    "mcpServers": {
+        "getwhys": {
+            "type": "http",
+            "url": "https://api.getwhys.io/mcp/org",
+        }
+    }
+}
+if config != expected:
+    sys.exit("FAIL: packaged .mcp.json has an invalid GetWhys server declaration")
+PY
 
 echo "Built dist/getwhys-skills.zip (version $VERSION, $SKILL_TOTAL skill(s))."

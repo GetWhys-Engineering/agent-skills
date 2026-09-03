@@ -5,9 +5,10 @@ it in your admin settings — that's it. No command line, no git.
 
 > **Prerequisite — connect the GetWhys MCP server first.**
 > These skills guide your AI assistant in using the **GetWhys MCP server**, a
-> paid GetWhys product connected separately through
-> [GetWhys onboarding](https://www.getwhys.io). Skills are **inert without it** —
-> install the skill *and* connect the MCP, in either order.
+> paid GetWhys product connected through
+> [GetWhys onboarding](https://www.getwhys.io). Skills are **inert without it**.
+> The Claude Tag plugin declares the server endpoint, but its credential and
+> allowed-host access still require separate Access bundle configuration.
 
 ## 1. Download the skill
 
@@ -75,9 +76,11 @@ Per-user alternative (no admin needed): drop a skill folder into OneDrive at
 > Claude Tag (Anthropic's Slack agent) is in **public beta** — this UI may change.
 
 Claude Tag loads **plugins**, not skill zips, so it uses a different artifact:
-**`getwhys-skills.zip`** (same Releases page). The §2a skill zip is rejected by
-the plugin uploader, and a *public*-repo plugin marketplace can't be registered
-org-wide — uploading the plugin package is the supported path.
+**`getwhys-skills.zip`** (same Releases page). The plugin's root `.mcp.json`
+declares `https://api.getwhys.io/mcp/org`, without credentials or headers. The
+§2a skill zip is rejected by the plugin uploader, and a *public*-repo plugin
+marketplace can't be registered org-wide — uploading the plugin package is the
+supported path.
 
 1. Download **`getwhys-skills.zip`** from
    [Releases](https://github.com/GetWhys-Engineering/agent-skills/releases).
@@ -85,8 +88,14 @@ org-wide — uploading the plugin package is the supported path.
    marketplace**, give it a name (e.g. `getwhys`) → select the zip → **Upload**.
 3. Enable **`getwhys-skills`** for the scope (workspace or channel) where Claude
    Tag should use it.
-4. **Connect the GetWhys MCP separately** as a custom connection in that scope's
-   Access bundle (via GetWhys onboarding) — the skill is inert without it.
+4. In that scope's Access bundle, open **Credentials**, choose **Connect another
+   tool**, and configure the GetWhys credential provided during onboarding.
+5. Set the credential's **Allowed websites** host to `api.getwhys.io`. The
+   plugin declaration alone does not grant network or authentication access.
+
+See Anthropic's [custom MCP connection
+guide](https://claude.com/docs/claude-tag/admins/connections/custom) for the
+current Claude Tag flow.
 
 ## What "org-wide" actually means
 
