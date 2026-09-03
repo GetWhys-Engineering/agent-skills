@@ -50,11 +50,12 @@ niceties belong in the plugin wrapper (`.claude-plugin/`), not in the skill.
   internal-only details — in skills, docs, or commit history.
 - **Never add credential-bearing or platform-specific MCP config**
   (`gemini-extension.json` MCP bundles, tokens, secrets, client IDs, or request
-  headers). The sole exception is the root `.mcp.json`: it may declare the
-  public GetWhys remote HTTP endpoint for the Claude Tag plugin, but must remain
-  credential-free. Authentication and allowed-host access are configured
-  separately through GetWhys onboarding. Skills may reference MCP tools by name
-  only.
+  headers). The sole exception is `packaging/claude-tag/.mcp.json`: the package
+  build copies this credential-free public endpoint declaration into the root
+  of the Claude Tag plugin zip. Never put `.mcp.json` at the repository root,
+  where the Claude Code marketplace plugin would load it automatically.
+  Authentication and allowed-host access are configured separately through
+  GetWhys onboarding. Skills may reference MCP tools by name only.
 - **< 200 files** per skill directory (Claude upload limit).
 - No `.DS_Store` / `__MACOSX` anywhere.
 

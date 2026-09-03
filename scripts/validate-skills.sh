@@ -9,7 +9,7 @@
 #   - `description`: non-empty, <=1024 chars, no XML tags
 #   - <200 files per skill directory
 #   - no .DS_Store / __MACOSX / obvious secret patterns
-#   - root .mcp.json is the credential-free GetWhys remote HTTP declaration
+#   - the Claude Tag package template is credential-free and no root .mcp.json exists
 #
 # Exits non-zero on any violation. Runs on macOS bash 3.2 and Linux.
 
@@ -17,7 +17,8 @@ set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 SKILLS_DIR="$REPO_ROOT/skills"
-MCP_CONFIG="$REPO_ROOT/.mcp.json"
+MCP_CONFIG="$REPO_ROOT/packaging/claude-tag/.mcp.json"
+ROOT_MCP_CONFIG="$REPO_ROOT/.mcp.json"
 
 ERRORS=0
 
@@ -31,8 +32,12 @@ if [ ! -d "$SKILLS_DIR" ]; then
   exit 1
 fi
 
+if [ -e "$ROOT_MCP_CONFIG" ]; then
+  fail "root .mcp.json would be loaded by the Claude Code marketplace plugin"
+fi
+
 if [ ! -f "$MCP_CONFIG" ]; then
-  fail "missing root .mcp.json"
+  fail "missing packaging/claude-tag/.mcp.json"
 else
   if ! python3 - "$MCP_CONFIG" <<'PY'
 import json, sys
@@ -55,7 +60,7 @@ if config != expected:
     sys.exit("must contain only the credential-free GetWhys HTTP server declaration")
 PY
   then
-    fail ".mcp.json is invalid"
+    fail "packaging/claude-tag/.mcp.json is invalid"
   fi
 fi
 

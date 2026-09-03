@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# package-plugin.sh — build the Claude Code / Claude Tag plugin package.
+# package-plugin.sh — build the Claude Tag plugin package.
 #
 # Produces dist/getwhys-skills.zip, a self-contained plugin:
 #   .claude-plugin/plugin.json — the plugin manifest (version injected)
@@ -21,7 +21,7 @@ set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 SKILLS_DIR="$REPO_ROOT/skills"
 PLUGIN_MANIFEST="$REPO_ROOT/.claude-plugin/plugin.json"
-MCP_CONFIG="$REPO_ROOT/.mcp.json"
+MCP_CONFIG="$REPO_ROOT/packaging/claude-tag/.mcp.json"
 DIST_DIR="$REPO_ROOT/dist"
 STAGE_DIR="$DIST_DIR/.plugin-stage"
 OUT_ZIP="$DIST_DIR/getwhys-skills.zip"
@@ -35,7 +35,7 @@ if [ ! -f "$PLUGIN_MANIFEST" ]; then
 fi
 
 if [ ! -f "$MCP_CONFIG" ]; then
-  echo "FAIL: missing .mcp.json" >&2
+  echo "FAIL: missing packaging/claude-tag/.mcp.json" >&2
   exit 1
 fi
 
@@ -54,7 +54,7 @@ expected = {
     }
 }
 if config != expected:
-    sys.exit("FAIL: .mcp.json must contain only the credential-free GetWhys HTTP server declaration")
+    sys.exit("FAIL: packaging/claude-tag/.mcp.json must contain only the credential-free GetWhys HTTP server declaration")
 PY
 
 # --- collect skill dirs ---
