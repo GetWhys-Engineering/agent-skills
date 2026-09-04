@@ -19,6 +19,7 @@ REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 SKILLS_DIR="$REPO_ROOT/skills"
 MCP_CONFIG="$REPO_ROOT/packaging/claude-tag/.mcp.json"
 ROOT_MCP_CONFIG="$REPO_ROOT/.mcp.json"
+ARTIFACT_JSON="$REPO_ROOT/scripts/artifact-json.py"
 
 ERRORS=0
 
@@ -39,27 +40,7 @@ fi
 if [ ! -f "$MCP_CONFIG" ]; then
   fail "missing packaging/claude-tag/.mcp.json"
 else
-  if ! python3 - "$MCP_CONFIG" <<'PY'
-import json, sys
-
-try:
-    with open(sys.argv[1]) as f:
-        config = json.load(f)
-except (OSError, json.JSONDecodeError) as error:
-    sys.exit(f"invalid JSON: {error}")
-
-expected = {
-    "mcpServers": {
-        "getwhys": {
-            "type": "http",
-            "url": "https://api.getwhys.io/mcp/org",
-        }
-    }
-}
-if config != expected:
-    sys.exit("must contain only the credential-free GetWhys HTTP server declaration")
-PY
-  then
+  if ! python3 "$ARTIFACT_JSON" validate-mcp "$MCP_CONFIG"; then
     fail "packaging/claude-tag/.mcp.json is invalid"
   fi
 fi

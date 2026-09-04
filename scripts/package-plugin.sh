@@ -22,6 +22,7 @@ REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 SKILLS_DIR="$REPO_ROOT/skills"
 PLUGIN_MANIFEST="$REPO_ROOT/.claude-plugin/plugin.json"
 MCP_CONFIG="$REPO_ROOT/packaging/claude-tag/.mcp.json"
+ARTIFACT_JSON="$REPO_ROOT/scripts/artifact-json.py"
 DIST_DIR="$REPO_ROOT/dist"
 STAGE_DIR="$DIST_DIR/.plugin-stage"
 OUT_ZIP="$DIST_DIR/getwhys-skills.zip"
@@ -39,23 +40,7 @@ if [ ! -f "$MCP_CONFIG" ]; then
   exit 1
 fi
 
-python3 - "$MCP_CONFIG" <<'PY'
-import json, sys
-
-with open(sys.argv[1]) as f:
-    config = json.load(f)
-
-expected = {
-    "mcpServers": {
-        "getwhys": {
-            "type": "http",
-            "url": "https://api.getwhys.io/mcp/org",
-        }
-    }
-}
-if config != expected:
-    sys.exit("FAIL: packaging/claude-tag/.mcp.json must contain only the credential-free GetWhys HTTP server declaration")
-PY
+python3 "$ARTIFACT_JSON" validate-mcp "$MCP_CONFIG"
 
 # --- collect skill dirs ---
 SKILL_NAMES=""
@@ -83,46 +68,14 @@ for name in $SKILL_NAMES; do
 done
 
 # --- render plugin.json (inject version; fail on invalid JSON or missing name) ---
-VERSION="$VERSION" python3 - "$PLUGIN_MANIFEST" "$STAGE_DIR/.claude-plugin/plugin.json" <<'PY'
-import json, os, sys
-
-src, out = sys.argv[1], sys.argv[2]
-with open(src) as f:
-    manifest = json.load(f)
-
-if not manifest.get("name"):
-    sys.exit("FAIL: plugin.json has no 'name'")
-
-manifest["version"] = os.environ["VERSION"]
-
-with open(out, "w") as f:
-    json.dump(manifest, f, indent=2)
-    f.write("\n")
-PY
+python3 "$ARTIFACT_JSON" render-claude-manifest \
+  "$PLUGIN_MANIFEST" "$STAGE_DIR/.claude-plugin/plugin.json" "$VERSION"
 
 # --- zip (.claude-plugin/ + .mcp.json + skills/ at the package root) ---
 (cd "$STAGE_DIR" && zip -r -X -q "$OUT_ZIP" . \
   -x '*.DS_Store' -x '*__MACOSX*')
 rm -rf "$STAGE_DIR"
 
-python3 - "$OUT_ZIP" <<'PY'
-import json, sys, zipfile
-
-with zipfile.ZipFile(sys.argv[1]) as archive:
-    if ".mcp.json" not in archive.namelist():
-        sys.exit("FAIL: packaged plugin is missing root-level .mcp.json")
-    config = json.loads(archive.read(".mcp.json"))
-
-expected = {
-    "mcpServers": {
-        "getwhys": {
-            "type": "http",
-            "url": "https://api.getwhys.io/mcp/org",
-        }
-    }
-}
-if config != expected:
-    sys.exit("FAIL: packaged .mcp.json has an invalid GetWhys server declaration")
-PY
+python3 "$ARTIFACT_JSON" verify-claude-package "$OUT_ZIP"
 
 echo "Built dist/getwhys-skills.zip (version $VERSION, $SKILL_TOTAL skill(s))."

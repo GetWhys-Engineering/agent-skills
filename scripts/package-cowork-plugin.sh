@@ -18,6 +18,7 @@ set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 SKILLS_DIR="$REPO_ROOT/skills"
 COWORK_DIR="$REPO_ROOT/cowork"
+ARTIFACT_JSON="$REPO_ROOT/scripts/artifact-json.py"
 DIST_DIR="$REPO_ROOT/dist"
 STAGE_DIR="$DIST_DIR/.cowork-stage"
 OUT_ZIP="$DIST_DIR/getwhys-cowork.zip"
@@ -56,22 +57,9 @@ for name in $SKILL_NAMES; do
 done
 
 # --- render manifest.json (inject version + agentSkills array) ---
-SKILL_NAMES="$SKILL_NAMES" VERSION="$VERSION" python3 - "$COWORK_DIR/manifest.template.json" "$STAGE_DIR/manifest.json" <<'PY'
-import json, os, sys
-
-template_path, out_path = sys.argv[1], sys.argv[2]
-with open(template_path) as f:
-    manifest = json.load(f)
-
-manifest["version"] = os.environ["VERSION"]
-manifest["agentSkills"] = [
-    {"folder": f"./skills/{name}"} for name in os.environ["SKILL_NAMES"].split()
-]
-
-with open(out_path, "w") as f:
-    json.dump(manifest, f, indent=2)
-    f.write("\n")
-PY
+python3 "$ARTIFACT_JSON" render-cowork-manifest \
+  "$COWORK_DIR/manifest.template.json" "$STAGE_DIR/manifest.json" \
+  "$VERSION" "$SKILL_NAMES"
 
 # --- zip (flat: manifest + icons + skills/ at the package root) ---
 (cd "$STAGE_DIR" && zip -r -X -q "$OUT_ZIP" . \

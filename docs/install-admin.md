@@ -88,8 +88,9 @@ supported path.
    marketplace**, give it a name (e.g. `getwhys`) → select the zip → **Upload**.
 3. Enable **`getwhys-skills`** for the scope (workspace or channel) where Claude
    Tag should use it.
-4. In that scope's Access bundle, open **Credentials**, choose **Connect another
-   tool**, and configure the GetWhys credential provided during onboarding.
+4. In that scope's Access bundle, open **Credentials**, click **Connect** next
+   to **Custom tool**, and configure the GetWhys credential provided during
+   onboarding.
 5. Set the credential's **Allowed websites** host to `api.getwhys.io`. The
    plugin declaration alone does not grant network or authentication access.
 
