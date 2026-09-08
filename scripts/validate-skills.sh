@@ -9,6 +9,7 @@
 #   - `description`: non-empty, <=1024 chars, no XML tags
 #   - <200 files per skill directory
 #   - no .DS_Store / __MACOSX / obvious secret patterns
+#   - no obvious secret patterns anywhere else in the repo either
 #   - the Claude Tag package template is credential-free and no root .mcp.json exists
 #
 # Exits non-zero on any violation. Runs on macOS bash 3.2 and Linux.
@@ -43,6 +44,20 @@ else
   if ! python3 "$ARTIFACT_JSON" validate-mcp "$MCP_CONFIG"; then
     fail "packaging/claude-tag/.mcp.json is invalid"
   fi
+fi
+
+# --- obvious secret patterns, repo-wide ---
+secret_hits="$(grep -rEIl \
+  --exclude-dir=.git --exclude-dir=.claude --exclude-dir=dist \
+  -e 'AKIA[0-9A-Z]{16}' \
+  -e '-----BEGIN [A-Z ]*PRIVATE KEY-----' \
+  -e 'sk-[A-Za-z0-9_-]{20,}' \
+  -e 'ghp_[A-Za-z0-9]{36}' \
+  -e 'xox[baprs]-[A-Za-z0-9-]+' \
+  "$REPO_ROOT" 2>/dev/null || true)"
+if [ -n "$secret_hits" ]; then
+  fail "possible secret (AWS key, private key, API token, ...) in:"
+  printf '%s\n' "$secret_hits" | sed "s|^$REPO_ROOT/|  |" >&2
 fi
 
 # Extract a single-line frontmatter value for key $2 from SKILL.md $1.

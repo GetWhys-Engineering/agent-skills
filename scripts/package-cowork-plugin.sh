@@ -57,7 +57,7 @@ for name in $SKILL_NAMES; do
 done
 
 # --- render manifest.json (inject version + agentSkills array) ---
-python3 "$ARTIFACT_JSON" render-cowork-manifest \
+python3 "$ARTIFACT_JSON" render-cowork-manifest -- \
   "$COWORK_DIR/manifest.template.json" "$STAGE_DIR/manifest.json" \
   "$VERSION" "$SKILL_NAMES"
 

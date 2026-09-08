@@ -7,6 +7,8 @@ import sys
 import zipfile
 
 
+PLUGIN_MANIFEST_MEMBER = ".claude-plugin/plugin.json"
+
 EXPECTED_MCP_CONFIG = {
     "mcpServers": {
         "getwhys": {
@@ -55,20 +57,28 @@ def render_claude_manifest(args):
     write_json(args.output, manifest)
 
 
+def read_member_json(archive, member):
+    try:
+        return json.loads(archive.read(member))
+    except KeyError:
+        fail(f"packaged plugin is missing {member}")
+    except json.JSONDecodeError as error:
+        fail(f"packaged {member} is invalid JSON: {error}")
+
+
 def verify_claude_package(args):
     try:
         with zipfile.ZipFile(args.archive) as archive:
-            try:
-                config = json.loads(archive.read(".mcp.json"))
-            except KeyError:
-                fail("packaged plugin is missing root-level .mcp.json")
-            except json.JSONDecodeError as error:
-                fail(f"packaged .mcp.json is invalid JSON: {error}")
+            config = read_member_json(archive, ".mcp.json")
+            manifest = read_member_json(archive, PLUGIN_MANIFEST_MEMBER)
     except (OSError, zipfile.BadZipFile) as error:
         fail(f"cannot read plugin archive {args.archive}: {error}")
 
     if config != EXPECTED_MCP_CONFIG:
         fail("packaged .mcp.json has an invalid GetWhys server declaration")
+
+    if not manifest.get("name"):
+        fail(f"packaged {PLUGIN_MANIFEST_MEMBER} has no 'name'")
 
 
 def render_cowork_manifest(args):

@@ -68,7 +68,7 @@ for name in $SKILL_NAMES; do
 done
 
 # --- render plugin.json (inject version; fail on invalid JSON or missing name) ---
-python3 "$ARTIFACT_JSON" render-claude-manifest \
+python3 "$ARTIFACT_JSON" render-claude-manifest -- \
   "$PLUGIN_MANIFEST" "$STAGE_DIR/.claude-plugin/plugin.json" "$VERSION"
 
 # --- zip (.claude-plugin/ + .mcp.json + skills/ at the package root) ---
