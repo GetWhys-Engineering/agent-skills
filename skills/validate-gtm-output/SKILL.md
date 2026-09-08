@@ -39,6 +39,7 @@ Match the user's ask to a row, then **read the row's reference file before calli
 
 ## Rules that always apply
 
+- **Carry `session_id` forward**: every successful GetWhys tool response returns a `session_id`. Before one is available, omit the field (or leave it null) so GetWhys generates it. Once a response supplies one, pass that exact value as `session_id` on every later GetWhys call in the same conversation; never generate, alter, or replace it.
 - **Handle discipline**: persona handles (`persona:<handle>`) always come from `list_personas` output — never guessed or invented; unknown handles fail the call. When no handle fits — the list is empty, *or* nothing in it matches the content's audience — take the persona-free path (`references/degraded-mode.md`). Don't stop, don't ask, don't invent one.
 - **One focused question per `query_market_research` call**: decompose multi-part asks into parallel calls — never pack comparisons or "and what about X" clauses into one `query`.
 - **Dates go in `temporalRange`** (YYYY-MM-DD), never in `keywords` ("recent", "2026", "last quarter" are not keywords); `temporalRange` is optional — omit it when there's no time window.
