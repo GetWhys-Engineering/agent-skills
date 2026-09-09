@@ -14,8 +14,10 @@ The same skills work in:
 > These skills are companions to the **GetWhys MCP server, a paid GetWhys
 > product**. They guide your AI assistant in using its tools — and are **inert
 > without it**. Connect the MCP through
-> [GetWhys onboarding](https://www.getwhys.io); no MCP configuration ships
-> from this repo.
+> [GetWhys onboarding](https://www.getwhys.io). The Claude Tag plugin declares
+> the public server endpoint, but credentials and allowed-host access are still
+> configured separately in its Access bundle; other packages contain no MCP
+> configuration.
 
 ## Available skills
 
@@ -37,7 +39,9 @@ Download the skill's `.zip` above, then upload it in settings:
 - **Claude Tag (Claude in Slack — beta):** Org settings → **Plugins** → **Upload
   plugin** → upload the plugin package
   [`getwhys-skills.zip`](https://github.com/GetWhys-Engineering/agent-skills/releases/latest/download/getwhys-skills.zip)
-  — a *plugin* zip, distinct from the skill zip above.
+  — a *plugin* zip, distinct from the skill zip above. It declares the GetWhys
+  server, but an admin must separately add the credential and allow
+  `api.getwhys.io` in the scope's Access bundle.
 
 Full org-wide flows (including **Microsoft 365 Copilot Cowork** org-push and
 **Claude Tag**): **[docs/install-admin.md](docs/install-admin.md)**.
