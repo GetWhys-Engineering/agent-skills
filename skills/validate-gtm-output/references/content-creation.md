@@ -101,14 +101,20 @@ missing persona costs you one rung, never the step.
      than inventing one or stopping.
    - `content_type` — optional but useful: "email subject line", "ad copy", "blog post",
      "landing page", "LinkedIn post".
-   - `messaging_framework_id` **or** `messaging_framework_title` — optional, exactly one, to
-     additionally score against a specific framework. Use `list_messaging_frameworks` to find
-     ids; a title-collision error means re-call with one of the returned ids.
+   - `messaging_framework_id` — optional, to additionally score against a specific framework.
+     Use `list_messaging_frameworks` to find its id.
+   After every successful call, capture the returned `content_id`. If the call fails or returns
+   no ID, do not invent one.
 2. **Present table-first**: render `dimensional_scores` as a table or bar chart *before* any
    written summary — never a wall of text. Then `persona_fit_summary`, then `recommendations`.
-3. Revise the draft applying the recommendations, resubmit, and repeat until `overall_score`
-   meets the user's threshold — default **~80** if they didn't set one. Report the
-   before/after scores so the user sees the trajectory.
+3. Revise the draft applying the recommendations, then resubmit with the most recently returned
+   `content_id`. Use it only for revisions of this artifact against this persona, even after an
+   extensive rewrite or on a later turn; omitting it falls back to best-effort same-session
+   similarity instead of deterministic linking. Capture the returned ID again after each score.
+   If it differs from the supplied ID, a new chain began: continue with the new ID and don't
+   present the unlinked calls as one before/after trajectory. Repeat until `overall_score` meets
+   the user's threshold — default **~80** if they didn't set one. Reuse IDs present in conversation
+   context; clients must persist and supply them to continue a chain across sessions.
 
 #### Reading the `score_content` response
 
@@ -172,7 +178,12 @@ The route for "score this draft", "will this resonate with [audience]?", and "ho
    is relevant to the content's audience, there is nothing to ask about: take the step 2
    *No relevant persona* branch, run the rung-2 evidence check, and say that's what you did.
 2. Call `score_content` with the same parameters as rung 1 above (`content`, `persona_handle`,
-   optional `content_type`, optional framework by `id` XOR `title`).
+   optional `content_type`, optional `messaging_framework_id`). Follow the score-loop chain
+   handling above: capture every successful response's `content_id`, pass the latest returned
+   value on the next revision of this artifact against this persona, and persist it for later
+   turns or sessions. Never reuse an ID for another artifact or persona or invent one when a call
+   fails or returns none. A returned ID that differs from the supplied value starts a new
+   trajectory.
 3. **Present table-first**: dimensional scores as a table or bar chart before any written
    summary, then `persona_fit_summary` and `recommendations`.
 
@@ -190,8 +201,10 @@ content-generation kickoff: switch to the full workflow at step 1.
 3. Grounding (optional, one call): `query_market_research` — query "What frustrations do IT
    buyers report around single sign-on and authentication?", `keywords: { allOfAny: [["SSO", "single sign-on", "single sign on"]] }`.
 4. Draft ~3 variants applying voice + frameworks + persona pains.
-5. `score_content({ content, persona_handle: "persona:it-director", content_type: "LinkedIn post" })`
-   → table of dimensional scores → revise → resubmit → deliver the winner with its score.
+5. `first = score_content({ content, persona_handle: "persona:it-director", content_type: "LinkedIn post" })`;
+   set `content_id = first.content_id` → table of dimensional scores → revise →
+   `revised = score_content({ content: revised_content, persona_handle: "persona:it-director", content_type: "LinkedIn post", content_id })`
+   → set `content_id = revised.content_id` → deliver the winner with its score.
 
 ## Worked example 2 — sales solution brief for a new audience
 
@@ -203,5 +216,8 @@ content-generation kickoff: switch to the full workflow at step 1.
    when evaluating vendor software?", `keywords: { allOfAny: [["bank", "banking", "financial institution"]] }`.
 4. Write the brief: lead with the persona's priorities and pains, map them to value props from
    the frameworks, enforce voice do/don't rules, and keep it to one page.
-5. Score loop against the chosen persona with `content_type: "solution brief"`; iterate to ~80+;
-   present before/after scores with the table first.
+5. `first = score_content({ content, persona_handle, content_type: "solution brief" })`; set
+   `content_id = first.content_id`, then pass it in the next
+   `score_content({ content: revised_content, persona_handle, content_type: "solution brief", content_id })`
+   call and replace it with that response's returned ID; iterate to ~80+ and present before/after
+   scores with the table first.

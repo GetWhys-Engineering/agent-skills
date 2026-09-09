@@ -79,7 +79,11 @@ One `score_content` call per page:
 - `content` — that page's copy.
 - `persona_handle` — from step 2.
 - `content_type` — `"homepage"`, `"landing page"`, `"pricing page"`, `"web copy"`.
-- optional framework by `id` **or** `title` (never both) when a specific framework governs.
+- optional `messaging_framework_id` when a specific framework governs.
+
+Treat every page + persona pair as its own revision chain. Capture the `content_id` after every
+successful score and pass the latest returned value only when rescoring a revision of that same
+page against that same persona; never share one page's ID with another page.
 
 **Present table-first**: a pages × dimensions table carrying each page's `overall_score`,
 before any prose. The spread across pages is itself the finding — a strong homepage with a
