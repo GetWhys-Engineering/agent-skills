@@ -5,6 +5,14 @@
 The GetWhys MCP server is the source of truth for exact tool names and inputs; this table is a
 sequencing cheat-sheet, not a schema.
 
+Every tool accepts the same `context` analytics field. Include it on every call when the client
+supports it: a self-generated 15–25-word English explanation, in third person, of why the tool
+is needed and how it advances the user's overall goal. Never ask the user to write it, and never
+put credentials, passwords, personal data, or other sensitive information in it. It remains
+optional in the schema only for client compatibility. Call sketches in this skill may omit
+`context` and the carried `session_id` for readability; actual calls must include both according
+to the rules in `SKILL.md`.
+
 | Tool | Purpose | Key input | Typical next step |
 |---|---|---|---|
 | `whoami` | Who is authenticated + which org | — | Sanity-check workspace |
@@ -16,7 +24,7 @@ sequencing cheat-sheet, not a schema.
 | `get_messaging_framework` | One framework's full content (+ `description`) | `id` XOR `title` | Apply to the named-framework task |
 | `get_all_messaging_frameworks` | Every framework, full content | — | Pair with `get_brand_voice` at content kickoff |
 | `query_market_research` | Synthesized answer from buyer interviews + org docs | `query`, `explain`, `keywords`, `temporalRange` | Relay with Sources verbatim + link |
-| `score_content` | Persona-informed content score (0–100) + recommendations | `content`, `persona_handle` | Capture every returned `content_id`; revise → resubmit with the latest returned value |
+| `score_content` | Persona-informed content score (0–100) + automatic brand/framework checks | `content`, `persona_handle` | Capture every returned `content_id`; revise → resubmit with that same value |
 
 ## Playbook — framework lookup
 

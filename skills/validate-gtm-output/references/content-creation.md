@@ -101,30 +101,38 @@ missing persona costs you one rung, never the step.
      than inventing one or stopping.
    - `content_type` — optional but useful: "email subject line", "ad copy", "blog post",
      "landing page", "LinkedIn post".
-   - `messaging_framework_id` — optional, to additionally score against a specific framework.
-     Use `list_messaging_frameworks` to find its id.
+   - `messaging_framework_id` — optional, to add an isolated evaluation of one specific
+     organization-level framework in `specified_framework_match`. Use
+     `list_messaging_frameworks` to find its id. The tool evaluates applicable
+     organization-level frameworks automatically even when this input is omitted;
+     project-specific frameworks are unavailable to scoring.
    After every successful call, capture the returned `content_id`. If the call fails or returns
    no ID, do not invent one.
 2. **Present table-first**: render `dimensional_scores` as a table or bar chart *before* any
    written summary — never a wall of text. Then `persona_fit_summary`, then `recommendations`.
 3. Revise the draft applying the recommendations, then resubmit with the most recently returned
    `content_id`. Use it only for revisions of this artifact against this persona, even after an
-   extensive rewrite or on a later turn; omitting it falls back to best-effort same-session
-   similarity instead of deterministic linking. Capture the returned ID again after each score.
-   If it differs from the supplied ID, a new chain began: continue with the new ID and don't
-   present the unlinked calls as one before/after trajectory. Repeat until `overall_score` meets
-   the user's threshold — default **~80** if they didn't set one. Reuse IDs present in conversation
-   context; clients must persist and supply them to continue a chain across sessions.
+   extensive rewrite or on a later turn; omitting it starts a new revision chain — there is no
+   similarity fallback. Capture the returned ID again after each score. If it differs from the
+   supplied ID, the supplied ID could not be linked and a new chain began: continue with the new
+   ID and don't present the unlinked calls as one before/after trajectory. Repeat until
+   `overall_score` meets the user's threshold — default **~80** if they didn't set one. Reuse IDs
+   present in conversation context; clients must persist and supply them to continue a chain
+   across sessions.
 
 #### Reading the `score_content` response
 
 The response carries `overall_score` (0–100), a set of `dimensional_scores`, and
-`recommendations`, plus `brand_voice_match` and `framework_match` when applicable. The rubric —
+`recommendations`, plus `brand_voice_match`, `framework_match`, and
+`specified_framework_match` when applicable. The rubric —
 which dimensions exist and how they're weighted — is configured per-org and can be customized,
 so don't assume a fixed set: **render whatever dimensions actually come back**, table-first,
 rather than describing weights from memory. `brand_voice_match` is populated when the org has
-configured brand voice (null otherwise); `framework_match` is pass/fail when you passed a
-framework (null otherwise).
+configured brand voice (null otherwise). `framework_match` is the combined pass/fail for the
+applicable organization-level frameworks selected automatically; it is null when none are
+configured or none apply. `specified_framework_match` is the isolated result for the framework
+named by `messaging_framework_id`, and is null when that input was omitted. Supplying an ID does
+not replace or alter the automatic `framework_match` evaluation.
 
 ### Rung 2 — evidence check (no relevant persona)
 
