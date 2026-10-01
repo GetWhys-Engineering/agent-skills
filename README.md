@@ -14,10 +14,10 @@ The same skills work in:
 > These skills are companions to the **GetWhys MCP server, a paid GetWhys
 > product**. They guide your AI assistant in using its tools — and are **inert
 > without it**. Connect the MCP through
-> [GetWhys onboarding](https://www.getwhys.io). The Claude Tag plugin declares
-> the public server endpoint, but credentials and allowed-host access are still
-> configured separately in its Access bundle; other packages contain no MCP
-> configuration.
+> [GetWhys onboarding](https://www.getwhys.io). The portable plugin and Claude
+> Tag plugin declare the public server endpoint. Authentication is configured
+> separately; Claude Tag also requires allowed-host access in its Access bundle.
+> Per-skill and M365 Cowork packages contain no MCP configuration.
 
 ## Available skills
 
@@ -26,6 +26,28 @@ The same skills work in:
 | [`validate-gtm-output`](skills/validate-gtm-output/SKILL.md) | Grounds marketing, content, and GTM work in real buyer evidence via the GetWhys MCP tools — research questions, competitive intel and battlecards, outward-facing content with brand voice and messaging frameworks, persona building, and draft scoring. | [zip](https://github.com/GetWhys-Engineering/agent-skills/releases/latest/download/validate-gtm-output.zip) |
 
 ## Install — pick your platform
+
+### Portable Agent Plugins clients
+
+This repository is an [Agent Plugins 1.0](https://agent-plugins.org/specification)
+plugin directory. Use your compatible client's local-directory or Git install
+flow to load it. The root [`plugin.json`](plugin.json) identifies the `getwhys`
+plugin, clients discover skills under `skills/`, and [`mcp.json`](mcp.json)
+declares the credential-free GetWhys Streamable HTTP endpoint. Configure
+authentication through GetWhys onboarding before using the tools.
+
+Client-specific metadata belongs under `extensions` in the root manifest.
+The existing `.claude-plugin/` manifests and release packages support their
+respective client install flows.
+
+Build the OpenAI upload ZIP with `./scripts/package-openai-plugin.sh` (Python
+3.9+). It writes `dist/getwhys-openai.zip` with a single `getwhys/` directory
+containing the portable manifests, all skills and their supporting files,
+LICENSE, and any referenced icons/screenshots. It excludes repository files
+and client-specific manifests. The version defaults to root `plugin.json`;
+override it with `VERSION=vX.Y.Z ./scripts/package-openai-plugin.sh`.
+The script reports missing review materials; a draft ZIP does not establish
+public submission readiness.
 
 ### No CLI? Org admin? (Claude.ai / Desktop / Cowork, ChatGPT Business/Enterprise)
 

@@ -1,0 +1,32 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "getwhys",
+  "version": "0.6.0",
+  "description": "Ground marketing, content, and go-to-market work in real buyer evidence with companion skills for the GetWhys MCP server.",
+  "author": {
+    "name": "GetWhys",
+    "url": "https://www.getwhys.io"
+  },
+  "homepage": "https://www.getwhys.io",
+  "repository": "https://github.com/GetWhys-Engineering/agent-skills",
+  "license": "MIT",
+  "keywords": ["getwhys", "marketing", "buyer-research", "go-to-market"],
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "GetWhys",
+        "shortDescription": "Ground GTM in buyer evidence",
+        "longDescription": "Research buyer questions, build competitive battlecards and personas, and create or score marketing content using the GetWhys MCP server. Requires a paid GetWhys account and separately configured authentication.",
+        "developerName": "GetWhys",
+        "category": "Productivity",
+        "logo": "./assets/getwhys-icon.png",
+        "composerIcon": "./assets/getwhys-icon.png",
+        "websiteURL": "https://getwhys.io",
+        "supportURL": "https://docs.getwhys.io/",
+        "privacyPolicyURL": "https://www.getwhys.io/privacy-policy",
+        "termsOfServiceURL": "https://www.getwhys.io/terms-and-conditions",
+        "defaultPrompt": "Help me ground my marketing work in real buyer evidence using GetWhys."
+      }
+    }
+  }
+}
