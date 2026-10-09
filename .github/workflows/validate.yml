@@ -14,8 +14,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
 
       - name: Validate skills
         run: ./scripts/validate-skills.sh
       - name: Package Claude Tag plugin
         run: ./scripts/package-plugin.sh
+      - name: Package ChatGPT plugin
+        run: ./scripts/package-openai-plugin.sh

@@ -64,8 +64,9 @@ niceties belong in the plugin wrapper (`.claude-plugin/`), not in the skill.
 1. `./scripts/validate-skills.sh` — must pass (frontmatter, file counts, hygiene).
 2. Optionally preview the artifacts in `dist/` (git-ignored):
    `./scripts/package-skills.sh` (per-skill zips),
-   `./scripts/package-cowork-plugin.sh` (M365 Cowork package), and
-   `./scripts/package-plugin.sh` (Claude Tag plugin package, `getwhys-skills.zip`).
+   `./scripts/package-cowork-plugin.sh` (M365 Cowork package),
+   `./scripts/package-plugin.sh` (Claude Tag plugin package, `getwhys-skills.zip`), and
+   `./scripts/package-openai-plugin.sh` (ChatGPT plugin package, `getwhys-openai.zip`).
 3. Releases are cut by pushing a `v*` tag — CI re-validates, builds all zips,
    and attaches them to a GitHub Release. Stable download URLs:
    - `https://github.com/GetWhys-Engineering/agent-skills/releases/latest/download/<skill>.zip`

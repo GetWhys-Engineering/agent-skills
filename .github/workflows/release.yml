@@ -13,6 +13,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          # Full history and tags: the ChatGPT plugin's release notes cover the
+          # commits since the previous v* tag.
+          fetch-depth: 0
 
       - name: Validate skills
         run: ./scripts/validate-skills.sh
@@ -27,6 +31,11 @@ jobs:
 
       - name: Package Claude Tag plugin
         run: ./scripts/package-plugin.sh
+        env:
+          VERSION: ${{ github.ref_name }}
+
+      - name: Package ChatGPT plugin
+        run: ./scripts/package-openai-plugin.sh
         env:
           VERSION: ${{ github.ref_name }}
 

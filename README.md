@@ -46,8 +46,10 @@ containing the portable manifests, all skills and their supporting files,
 LICENSE, and any referenced icons/screenshots. It excludes repository files
 and client-specific manifests. The version defaults to root `plugin.json`;
 override it with `VERSION=vX.Y.Z ./scripts/package-openai-plugin.sh`.
-The script reports missing review materials; a draft ZIP does not establish
-public submission readiness.
+The manifest's release notes default to the subjects of commits that touched
+packaged files since the previous `v*` tag; set `RELEASE_NOTES` to override
+them. Every release attaches this ZIP. The script reports missing review
+materials; a draft ZIP does not establish public submission readiness.
 
 ### No CLI? Org admin? (Claude.ai / Desktop / Cowork, ChatGPT Business/Enterprise)
 
@@ -93,8 +95,9 @@ Complete per-tool directory matrix:
 ## Updating / versioning
 
 Releases are cut as `vX.Y.Z` tags; each release attaches one zip per skill, the
-M365 Cowork package (`getwhys-cowork.zip`), and the Claude Tag plugin package
-(`getwhys-skills.zip`). Two URL shapes:
+M365 Cowork package (`getwhys-cowork.zip`), the Claude Tag plugin package
+(`getwhys-skills.zip`), and the OpenAI plugin upload (`getwhys-openai.zip`).
+Two URL shapes:
 
 ```
 https://github.com/GetWhys-Engineering/agent-skills/releases/latest/download/<skill>.zip   # always the newest
