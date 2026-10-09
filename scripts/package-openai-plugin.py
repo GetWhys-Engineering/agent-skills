@@ -42,6 +42,11 @@ def build():
         r"(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?", version),
         "VERSION must be a semantic version, optionally prefixed with v")
     manifest["version"] = version
+    # An empty release_notes string would clear the dashboard's saved notes.
+    notes = os.environ.get("RELEASE_NOTES", "").strip()
+    if notes:
+        extension = manifest.setdefault("extensions", {}).setdefault("com.openai", {})
+        extension.setdefault("publication", {})["release_notes"] = notes
     openai = manifest.get("extensions", {}).get("com.openai", {})
     require(openai.get("apps") is None,
             "public uploads must use mcp.json, not an apps binding")
@@ -129,15 +134,15 @@ def build():
     gaps = []
     if not interface.get("logo"):
         gaps.append("listing icon")
-    if not review.get("demo_recording_url"):
-        gaps.append("demo recording")
-    cases = review.get("test_cases", {})
-    if len(cases.get("positive", [])) != 5 or len(cases.get("negative", [])) != 3:
-        gaps.append("five positive and three negative review cases")
     if not publication.get("release_notes"):
         gaps.append("release notes")
     if gaps:
-        print("Draft package; public submission still needs: " + "; ".join(gaps) + ".")
+        print("Draft package; submission still needs: " + "; ".join(gaps) + ".")
+    cases = review.get("test_cases", {})
+    if (not review.get("demo_recording_url") or len(cases.get("positive", [])) != 5
+            or len(cases.get("negative", [])) != 3):
+        print("Review cases and demo recording are not in the package: an update reuses "
+              "the ones saved in the dashboard; an initial MCP review needs all of them.")
     print("Authentication, reviewer access, verification, and scans must be checked in the portal.")
 
 
