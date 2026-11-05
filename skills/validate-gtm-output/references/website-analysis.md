@@ -48,7 +48,7 @@ styled against your own brand voice.
 
 | Whose site | Sequence |
 |---|---|
-| **Ours** | Full stack: kickoff pair `get_brand_voice` + `get_all_messaging_frameworks` (parallel) → persona resolution → per-page `score_content` → research grounding → cross-page checks |
+| **Ours** | Full stack: kickoff pair `get_brand_voice` + `list_messaging_frameworks` (parallel) → `get_messaging_framework` for each framework that governs the pages → persona resolution → per-page `score_content` → research grounding → cross-page checks |
 | **A competitor's** | Competitive-intel shape (`market-research.md`): 3–4 parallel `query_market_research` — what buyers say about them, why buyers pick or reject them, their pricing and packaging — read against the claims their pages make. **No `get_brand_voice`, no `score_content`** |
 | **A prospect's or customer's** | Account research: 2–3 parallel `query_market_research` on that segment's pains, priorities, and buying committee, read against what their site says they care about. **No `get_brand_voice`**; score against our personas only when the question is explicitly "do we fit them?" |
 
@@ -97,8 +97,8 @@ weak conversion page is a different problem from a site that's uniformly mid.
 These are what a heuristics-only critique reaches for and has to guess at. Run all four.
 
 1. **One story, or several?** Extract each page's core positioning claim, then read the set
-   against `get_all_messaging_frameworks`. Pages that each sound fine alone but make a visitor
-   re-learn what the company is are the classic finding — and the frameworks let you
+   against the frameworks fetched at kickoff. Pages that each sound fine alone but make a
+   visitor re-learn what the company is are the classic finding — and the frameworks let you
    adjudicate it on approved positioning instead of taste. Flag any page claim that
    contradicts a framework or has no basis in one.
 2. **Does the site name its buyer?** Compare the hero and subhead against the persona's role,
@@ -139,7 +139,8 @@ the `view_in_getwhys` link when present, † markers preserved.
 1. **Fetch** the homepage, platform page, data page, and demo-request page; note those four as
    the covered set.
 2. **Whose site:** ours → full stack.
-3. **Parallel:** `get_brand_voice` + `get_all_messaging_frameworks`.
+3. **Parallel:** `get_brand_voice` + `list_messaging_frameworks` → `get_messaging_framework`
+   for each framework that governs the four pages.
 4. `list_personas` → primary buyer is a GTM / product-marketing leader →
    `get_persona({handle: "persona:pmm-leader"})` *(handle from the list output)*.
 5. **Parallel** `score_content`, one per page: homepage (`content_type: "homepage"`), platform

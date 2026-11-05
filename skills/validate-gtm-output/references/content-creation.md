@@ -20,14 +20,16 @@ The creation workflow covers three ask shapes equally:
 
 ## Step 1 — kickoff pair (every time)
 
-Call `get_brand_voice` and `get_all_messaging_frameworks` **in parallel** before drafting a
+Call `get_brand_voice` and `list_messaging_frameworks` **in parallel** before drafting a
 single word. This pair is non-negotiable for publishable content:
 
 - `get_brand_voice` returns the org's voice characteristics, each with do / don't rules.
-- `get_all_messaging_frameworks` returns the **full content of every framework** — the default
-  messaging tool for content generation. Never substitute `list_messaging_frameworks` (an index
-  with no content) or a single `get_messaging_framework` (one framework under-applies the
-  org's voice) unless the user explicitly scopes the task to one named framework.
+- `list_messaging_frameworks` returns the framework index: `id`, `title`, and `description`
+  for every framework, with no framework content.
+
+Then pick the frameworks that govern the piece (below) and fetch each with
+`get_messaging_framework({id})`, in parallel. Never draft from the index alone. If every
+description is null, every framework applies: call `get_all_messaging_frameworks` instead.
 
 Empty results ("No brand voice characteristics configured…", "No messaging frameworks
 configured…") mean the org hasn't set them up. Proceed without that input — no voice means
@@ -35,6 +37,27 @@ draft to plain B2B clarity; no frameworks means draft from persona + research an
 claim you couldn't check against approved positioning. Say once, in a line, which substitute
 you applied, and close by pointing at the GetWhys app as added rigor — never hold the draft
 back waiting for the user to configure something.
+
+### Which frameworks govern the piece
+
+Frameworks can nest: an org may arrange them in a hierarchy (for example portfolio → product →
+capability). A framework's `description` may say where it sits: its parent, its children, the
+frameworks to apply alongside it, and which one wins a conflict. Judge by the piece itself,
+including any content being rewritten, not just the request. Apply:
+
+- the most specific framework for the piece (one the user names counts, but it's rarely the
+  only one);
+- each framework its description names as a parent or to apply alongside, and so on up to the
+  top;
+- any framework with no description, or whose description says it applies to all content;
+- legal or compliance guidance, recognizable by title or description, unless it's limited to
+  other products, audiences, channels, or jurisdictions.
+
+Skip frameworks for unrelated products, channels, or audiences. A parent's rules, such as
+naming, approved terms, and legal requirements, hold in its children. When frameworks conflict,
+follow the order their descriptions state. If none states an order, don't pick one: draft
+everything else, leave the contested point out or show both versions, and ask the user which
+framework wins.
 
 ## Step 2 — persona resolution
 
@@ -81,8 +104,8 @@ Combine the three inputs:
 - **Brand voice**: apply every characteristic's "do" rules; treat "don't" rules as hard
   constraints to check the draft against line-by-line.
 - **Messaging frameworks**: frameworks supply positioning, value props, and approved claims.
-  When several apply, prefer the one(s) matching the product/audience of the piece, and don't
-  contradict the rest.
+  Apply every framework that governs the piece, and settle conflicts between them, as step 1
+  ("Which frameworks govern the piece") sets out.
 - **Persona**: lead with their challenges and motivations; make KPIs the payoff of the value
   proposition; match the seniority/register of the audience.
 
@@ -204,7 +227,10 @@ content-generation kickoff: switch to the full workflow at step 1.
 
 > "Write a LinkedIn post announcing our new SSO feature."
 
-1. Parallel: `get_brand_voice` + `get_all_messaging_frameworks`.
+1. Parallel: `get_brand_voice` + `list_messaging_frameworks`. The descriptions place an SSO
+   capability framework under an identity product framework, which sits under the portfolio
+   framework, and the index also has legal review guidance → `get_messaging_framework` for all
+   four, in parallel.
 2. `list_personas` → audience is security-conscious IT buyers → `get_persona({handle: "persona:it-director"})` *(handle from the list output)*.
 3. Grounding (optional, one call): `query_market_research` — query "What frustrations do IT
    buyers report around single sign-on and authentication?", `keywords: { allOfAny: [["SSO", "single sign-on", "single sign on"]] }`.
@@ -218,7 +244,8 @@ content-generation kickoff: switch to the full workflow at step 1.
 
 > "Turn our product overview into a one-page solution brief our AEs can send to retail-banking buyers."
 
-1. Parallel: `get_brand_voice` + `get_all_messaging_frameworks` (a prospect-facing rewrite is a kickoff).
+1. Parallel: `get_brand_voice` + `list_messaging_frameworks` (a prospect-facing rewrite is a
+   kickoff) → `get_messaging_framework` for each framework that governs the brief.
 2. `list_personas` → closest match to retail-banking buyers → `get_persona`.
 3. Grounding: `query_market_research` — query "What do banking technology buyers prioritize
    when evaluating vendor software?", `keywords: { allOfAny: [["bank", "banking", "financial institution"]] }`.
