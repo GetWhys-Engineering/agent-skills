@@ -20,16 +20,17 @@ to the rules in `SKILL.md`.
 | `get_persona` | Full attributes of one persona | `handle` (`persona:<handle>`) | Draft / score against it |
 | `get_all_personas` | Every persona, full detail | — | Only when the full set is explicitly required |
 | `get_brand_voice` | Org brand voice (do/don't rules) | — | Apply while drafting publishable copy |
-| `list_messaging_frameworks` | Framework index (`id`, `title`, `description`) — no framework content | — | `get_messaging_framework({id})` |
-| `get_messaging_framework` | One framework's full content (+ `description`) | `id` XOR `title` | Apply to the named-framework task |
-| `get_all_messaging_frameworks` | Every framework, full content | — | Pair with `get_brand_voice` at content kickoff |
+| `list_messaging_frameworks` | Framework index (`id`, `title`, `description`) — no framework content | — | Pair with `get_brand_voice` at content kickoff; then `get_messaging_framework({id})` for each framework that governs the task |
+| `get_messaging_framework` | One framework's full content (+ `description`) | `id` XOR `title` | For content, also fetch the other frameworks that govern the piece (`content-creation.md` step 1) |
+| `get_all_messaging_frameworks` | Every framework, full content | — | Content-kickoff fallback when every index description is null |
 | `query_market_research` | Synthesized answer from buyer interviews + org docs | `query`, `explain`, `keywords`, `temporalRange` | Relay with Sources verbatim + link |
 | `score_content` | Persona-informed content score (0–100) + automatic brand/framework checks | `content`, `persona_handle` | Capture every returned `content_id`; revise → resubmit with that same value |
 
 ## Playbook — framework lookup
 
-For "show me / use our [named] messaging framework" asks (NOT for content generation — that's
-the kickoff pair, `get_brand_voice` + `get_all_messaging_frameworks`):
+For "show me / use our [named] messaging framework" asks (content generation starts with the
+kickoff pair instead, `get_brand_voice` + `list_messaging_frameworks`; see
+`content-creation.md` step 1):
 
 - User named the framework **verbatim** → `get_messaging_framework({title})` directly — one
   round trip.
@@ -37,7 +38,10 @@ the kickoff pair, `get_brand_voice` + `get_all_messaging_frameworks`):
   `get_messaging_framework({id})`. Each index entry carries a `description` — a short "when to
   apply this" note (its topic plus any channel / content type, product, or audience it targets;
   may be null) — use it to pick the framework the user means and to tell similarly-named
-  frameworks apart.
+  frameworks apart. It may also say where the framework sits in a hierarchy.
+- After `get_messaging_framework`, read the returned `description`; it may name a parent or
+  frameworks to apply alongside. When the framework will shape content, it's the most specific
+  framework, not the only one: pick and fetch the rest as `content-creation.md` step 1 sets out.
 - A `title` call returning a "multiple frameworks share that title" error → re-call with one
   of the returned ids.
 - Pass exactly one of `id` or `title`, never both.

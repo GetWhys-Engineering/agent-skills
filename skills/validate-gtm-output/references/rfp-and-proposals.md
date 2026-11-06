@@ -103,8 +103,9 @@ qualitative verdicts, never an invented 0–100.
    30% price; incumbent named in the background section.
 2. **Parallel** `query_market_research`: the issuer segment's priorities; its buying committee
    and signer; what drives the decision; plus the incumbent × win/loss angle.
-3. **Parallel** `get_brand_voice` + `get_all_messaging_frameworks`; `list_personas` →
-   `get_persona` for the closest match to the issuer's evaluator.
+3. **Parallel** `get_brand_voice` + `list_messaging_frameworks` → `get_messaging_framework`
+   for each framework that governs the response; `list_personas` → `get_persona` for the
+   closest match to the issuer's evaluator.
 4. **Criteria vs. drivers**: price carries 30%, but buyers in this segment report switching cost
    as the real blocker — that gap becomes a win theme the RFP never asked for.
 5. **Coverage pass** across the 22 questions; net-new parallel pulls for the buyer-claim
