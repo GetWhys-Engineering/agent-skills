@@ -23,3 +23,5 @@ jobs:
         run: ./scripts/package-plugin.sh
       - name: Package ChatGPT plugin
         run: ./scripts/package-openai-plugin.sh
+      - name: Package Microsoft 365 Marketplace app
+        run: ./scripts/package-m365-app.sh

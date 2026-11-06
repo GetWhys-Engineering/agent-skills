@@ -29,6 +29,11 @@ jobs:
         env:
           VERSION: ${{ github.ref_name }}
 
+      - name: Package Microsoft 365 Marketplace app
+        run: ./scripts/package-m365-app.sh
+        env:
+          VERSION: ${{ github.ref_name }}
+
       - name: Package Claude Tag plugin
         run: ./scripts/package-plugin.sh
         env:
