@@ -50,9 +50,17 @@ niceties belong in the plugin wrapper (`.claude-plugin/`), not in the skill.
   internal-only details — in skills, docs, or commit history.
 - **Never add credential-bearing or platform-specific MCP config**
   (`gemini-extension.json` MCP bundles, tokens, secrets, client IDs, or request
-  headers). The sole exception is `packaging/claude-tag/.mcp.json`: the package
-  build copies this credential-free public endpoint declaration into the root
-  of the Claude Tag plugin zip. Never put `.mcp.json` at the repository root,
+  headers). There are two exceptions, and `validate-skills.sh` checks both:
+  - `packaging/claude-tag/.mcp.json`: the package build copies this
+    credential-free public endpoint declaration into the root of the Claude
+    Tag plugin zip.
+  - `packaging/m365/manifest.json`: the manifest of the "GetWhys MCP" app on
+    Microsoft Marketplace. Its `agentConnectors` entry names the public
+    endpoint and a connection Microsoft stores, by ID only (`type` and
+    `referenceId`). Keep its `id` unchanged: Microsoft treats a new id as a
+    different app.
+
+  Never put `.mcp.json` at the repository root,
   where the Claude Code marketplace plugin would load it automatically.
   Authentication and allowed-host access are configured separately through
   GetWhys onboarding. Skills may reference MCP tools by name only.
@@ -65,8 +73,9 @@ niceties belong in the plugin wrapper (`.claude-plugin/`), not in the skill.
 2. Optionally preview the artifacts in `dist/` (git-ignored):
    `./scripts/package-skills.sh` (per-skill zips),
    `./scripts/package-cowork-plugin.sh` (M365 Cowork package),
-   `./scripts/package-plugin.sh` (Claude Tag plugin package, `getwhys-skills.zip`), and
-   `./scripts/package-openai-plugin.sh` (ChatGPT plugin package, `getwhys-openai.zip`).
+   `./scripts/package-plugin.sh` (Claude Tag plugin package, `getwhys-skills.zip`),
+   `./scripts/package-openai-plugin.sh` (ChatGPT plugin package, `getwhys-openai.zip`), and
+   `./scripts/package-m365-app.sh` (Microsoft 365 Marketplace app, `getwhys-m365.zip`).
 3. Releases are cut by pushing a `v*` tag — CI re-validates, builds all zips,
    and attaches them to a GitHub Release. Stable download URLs:
    - `https://github.com/GetWhys-Engineering/agent-skills/releases/latest/download/<skill>.zip`

@@ -1,0 +1,51 @@
+{
+  "$schema": "https://developer.microsoft.com/en-us/json-schemas/teams/vDevPreview/MicrosoftTeams.schema.json",
+  "manifestVersion": "devPreview",
+  "version": "1.0.3",
+  "id": "87b884ad-6fa6-44b7-ab76-d3af04ac30b3",
+  "developer": {
+    "name": "Get Whys, Inc.",
+    "websiteUrl": "https://www.getwhys.io",
+    "privacyUrl": "https://www.getwhys.io/privacy-policy",
+    "termsOfUseUrl": "https://www.getwhys.io/terms-and-conditions",
+    "contactInfo": {
+      "defaultSupport": {
+        "userEmailsForChatSupport": [
+          "support@getwhys.io"
+        ],
+        "emailsForEmailSupport": [
+          "support@getwhys.io"
+        ]
+      }
+    }
+  },
+  "name": {
+    "short": "GetWhys MCP",
+    "full": "GetWhys MCP"
+  },
+  "description": {
+    "short": "Ground your work in trusted buyer research and organizational insights.",
+    "full": "Connect GetWhys MCP to proprietary B2B buyer interviews and your organization's personas, brand voice, messaging frameworks, and uploaded documents. Research markets, understand audiences, and improve content using real buyer evidence. An active GetWhys account and access to a GetWhys organization are required. Sign up: https://app.getwhys.io/auth/register. Get started: https://docs.getwhys.io/mcp. Contact us: https://www.getwhys.io/get-demo. Help: https://docs.getwhys.io."
+  },
+  "agentConnectors": [
+    {
+      "id": "getwhys-mcp",
+      "displayName": "GetWhys Buyer Intelligence",
+      "description": "Search proprietary B2B buyer interviews and your organization's research, personas, brand voice, messaging frameworks, and documents. Use the results to understand markets and audiences, ground claims in buyer evidence, and improve customer-facing content.",
+      "toolSource": {
+        "remoteMcpServer": {
+          "mcpServerUrl": "https://api.getwhys.io/mcp/org",
+          "authorization": {
+            "type": "ConnectionVault",
+            "referenceId": "shared_getwhysmcp"
+          }
+        }
+      }
+    }
+  ],
+  "icons": {
+    "outline": "Outline.png",
+    "color": "Color.png"
+  },
+  "accentColor": "#4254A4"
+}

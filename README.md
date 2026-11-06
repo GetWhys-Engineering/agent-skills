@@ -14,8 +14,9 @@ The same skills work in:
 > These skills are companions to the **GetWhys MCP server, a paid GetWhys
 > product**. They guide your AI assistant in using its tools — and are **inert
 > without it**. Connect the MCP through
-> [GetWhys onboarding](https://www.getwhys.io). The portable plugin and Claude
-> Tag plugin declare the public server endpoint. Authentication is configured
+> [GetWhys onboarding](https://www.getwhys.io). The portable plugin, the Claude
+> Tag plugin, and the Microsoft 365 Marketplace app declare the public server
+> endpoint. Authentication is configured
 > separately; Claude Tag also requires allowed-host access in its Access bundle.
 > Per-skill and M365 Cowork packages contain no MCP configuration.
 
@@ -96,7 +97,10 @@ Complete per-tool directory matrix:
 
 Releases are cut as `vX.Y.Z` tags; each release attaches one zip per skill, the
 M365 Cowork package (`getwhys-cowork.zip`), the Claude Tag plugin package
-(`getwhys-skills.zip`), and the OpenAI plugin upload (`getwhys-openai.zip`).
+(`getwhys-skills.zip`), the OpenAI plugin upload (`getwhys-openai.zip`), and the
+Microsoft 365 Marketplace app upload (`getwhys-m365.zip`). The last two are for
+the GetWhys listings on ChatGPT and Microsoft Marketplace; customers install
+those from the stores, not from this page.
 Two URL shapes:
 
 ```
