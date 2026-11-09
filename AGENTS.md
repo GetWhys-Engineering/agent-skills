@@ -52,10 +52,18 @@ niceties belong in the plugin wrapper (`.claude-plugin/`), not in the skill.
   (`gemini-extension.json` MCP bundles, tokens, secrets, client IDs, or request
   headers). The sole exception is `packaging/claude-tag/.mcp.json`: the package
   build copies this credential-free public endpoint declaration into the root
-  of the Claude Tag plugin zip. Never put `.mcp.json` at the repository root,
+  of the built Claude plugin (`dist/getwhys-skills/`), which ships as the
+  Claude Tag zip and as the `claude-directory` branch. Never put `.mcp.json` at the repository root,
   where the Claude Code marketplace plugin would load it automatically.
   Authentication and allowed-host access are configured separately through
   GetWhys onboarding. Skills may reference MCP tools by name only.
+- **Never commit to the `claude-directory` branch.** Claude's plugin directory
+  lists our plugin from it, and CI rewrites it on every `v*` tag (and on a
+  manual run of the "Publish Claude directory plugin" workflow from `main`).
+  To change what the directory serves, change the skills,
+  `.claude-plugin/plugin.json`, or `packaging/claude-directory/` (the listing's
+  README and icon) on `main`. The listing icon is fixed once the listing is
+  first saved; replacing the file later doesn't change it.
 - **< 200 files** per skill directory (Claude upload limit).
 - No `.DS_Store` / `__MACOSX` anywhere.
 
@@ -65,9 +73,13 @@ niceties belong in the plugin wrapper (`.claude-plugin/`), not in the skill.
 2. Optionally preview the artifacts in `dist/` (git-ignored):
    `./scripts/package-skills.sh` (per-skill zips),
    `./scripts/package-cowork-plugin.sh` (M365 Cowork package),
-   `./scripts/package-plugin.sh` (Claude Tag plugin package, `getwhys-skills.zip`), and
+   `./scripts/package-plugin.sh` (Claude plugin: the `getwhys-skills/` folder
+   for Claude's directory and `getwhys-skills.zip` for Claude Tag; fails on
+   anything the directory would hold or block), and
    `./scripts/package-openai-plugin.sh` (ChatGPT plugin package, `getwhys-openai.zip`).
 3. Releases are cut by pushing a `v*` tag — CI re-validates, builds all zips,
-   and attaches them to a GitHub Release. Stable download URLs:
+   and attaches them to a GitHub Release. A second workflow publishes the
+   Claude plugin to the `claude-directory` branch, which Claude's plugin
+   directory tracks. Stable download URLs:
    - `https://github.com/GetWhys-Engineering/agent-skills/releases/latest/download/<skill>.zip`
    - `https://github.com/GetWhys-Engineering/agent-skills/releases/download/<tag>/<skill>.zip`
