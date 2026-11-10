@@ -1,0 +1,40 @@
+name: Publish Claude directory plugin
+
+# Claude's plugin directory lists getwhys-skills from the claude-directory
+# branch, which holds only the built plugin folder (see
+# scripts/publish-directory-branch.sh). A v* tag publishes that release. A
+# manual run from main publishes main's build: the first listing, or a fix to
+# the listing's README or icon between releases.
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: claude-directory
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    # Manual runs publish only from main, never from a feature branch.
+    if: github.ref_type == 'tag' || github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Validate skills
+        run: ./scripts/validate-skills.sh
+
+      - name: Build the plugin
+        run: ./scripts/package-plugin.sh
+        env:
+          # A tag sets the version; a manual run keeps the one checked in.
+          VERSION: ${{ github.ref_type == 'tag' && github.ref_name || '' }}
+
+      - name: Publish to the claude-directory branch
+        run: ./scripts/publish-directory-branch.sh

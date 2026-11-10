@@ -5,7 +5,7 @@
   "plugins": [
     {
       "name": "getwhys-skills",
-      "description": "Companion skills for the GetWhys MCP server",
+      "description": "Ground marketing, sales, and go-to-market work in what real buyers said, using your GetWhys interviews, personas, and messaging frameworks.",
       "source": "./"
     }
   ]
