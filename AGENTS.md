@@ -50,10 +50,18 @@ niceties belong in the plugin wrapper (`.claude-plugin/`), not in the skill.
   internal-only details — in skills, docs, or commit history.
 - **Never add credential-bearing or platform-specific MCP config**
   (`gemini-extension.json` MCP bundles, tokens, secrets, client IDs, or request
-  headers). The sole exception is `packaging/claude-tag/.mcp.json`: the package
-  build copies this credential-free public endpoint declaration into the root
-  of the built Claude plugin (`dist/getwhys-skills/`), which ships as the
-  Claude Tag zip and as the `claude-directory` branch. Never put `.mcp.json` at the repository root,
+  headers). There are two exceptions, and `validate-skills.sh` checks both:
+  - `packaging/claude-tag/.mcp.json`: the package build copies this
+    credential-free public endpoint declaration into the root of the built
+    Claude plugin (`dist/getwhys-skills/`), which ships as the Claude Tag zip
+    and as the `claude-directory` branch.
+  - `packaging/m365/manifest.json`: the manifest of the "GetWhys MCP" app on
+    Microsoft Marketplace. Its `agentConnectors` entry names the public
+    endpoint and a connection Microsoft stores, by ID only (`type` and
+    `referenceId`). Keep its `id` unchanged: Microsoft treats a new id as a
+    different app.
+
+  Never put `.mcp.json` at the repository root,
   where the Claude Code marketplace plugin would load it automatically.
   Authentication and allowed-host access are configured separately through
   GetWhys onboarding. Skills may reference MCP tools by name only.
@@ -75,8 +83,9 @@ niceties belong in the plugin wrapper (`.claude-plugin/`), not in the skill.
    `./scripts/package-cowork-plugin.sh` (M365 Cowork package),
    `./scripts/package-plugin.sh` (Claude plugin: the `getwhys-skills/` folder
    for Claude's directory and `getwhys-skills.zip` for Claude Tag; fails on
-   anything the directory would hold or block), and
-   `./scripts/package-openai-plugin.sh` (ChatGPT plugin package, `getwhys-openai.zip`).
+   anything the directory would hold or block),
+   `./scripts/package-openai-plugin.sh` (ChatGPT plugin package, `getwhys-openai.zip`), and
+   `./scripts/package-m365-app.sh` (Microsoft 365 Marketplace app, `getwhys-m365.zip`).
 3. Releases are cut by pushing a `v*` tag — CI re-validates, builds all zips,
    and attaches them to a GitHub Release. A second workflow publishes the
    Claude plugin to the `claude-directory` branch, which Claude's plugin
