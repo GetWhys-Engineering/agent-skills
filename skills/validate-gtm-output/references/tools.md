@@ -1,0 +1,68 @@
+# Tool quick reference, framework lookup, and workspace sanity
+
+## Tool quick reference
+
+The GetWhys MCP server is the source of truth for exact tool names and inputs; this table is a
+sequencing cheat-sheet, not a schema.
+
+Every tool accepts the same `context` analytics field. Include it on every call when the client
+supports it: a self-generated 15–25-word English explanation, in third person, of why the tool
+is needed and how it advances the user's overall goal. Never ask the user to write it, and never
+put credentials, passwords, personal data, or other sensitive information in it. It remains
+optional in the schema only for client compatibility. Call sketches in this skill may omit
+`context` and the carried `session_id` for readability; actual calls must include both according
+to the rules in `SKILL.md`.
+
+| Tool | Purpose | Key input | Typical next step |
+|---|---|---|---|
+| `whoami` | Who is authenticated + which org | — | Sanity-check workspace |
+| `list_personas` | Lightweight persona index (handle + name) | — | `get_persona` with the chosen handle |
+| `get_persona` | Full attributes of one persona | `handle` (`persona:<handle>`) | Draft / score against it |
+| `get_all_personas` | Every persona, full detail | — | Only when the full set is explicitly required |
+| `get_brand_voice` | Org brand voice (do/don't rules) | — | Apply while drafting publishable copy |
+| `list_messaging_frameworks` | Framework index (`id`, `title`, `description`) — no framework content | — | Pair with `get_brand_voice` at content kickoff; then `get_messaging_framework({id})` for each framework that governs the task |
+| `get_messaging_framework` | One framework's full content (+ `description`) | `id` XOR `title` | For content, also fetch the other frameworks that govern the piece (`content-creation.md` step 1) |
+| `get_all_messaging_frameworks` | Every framework, full content | — | Content-kickoff fallback when every index description is null |
+| `query_market_research` | Synthesized answer from buyer interviews + org docs | `query`, `explain`, `keywords`, `temporalRange` | Relay with Sources verbatim + link |
+| `score_content` | Persona-informed content score (0–100) + automatic brand/framework checks | `content`, `persona_handle` | Capture every returned `content_id`; revise → resubmit with that same value |
+
+## Playbook — framework lookup
+
+For "show me / use our [named] messaging framework" asks (content generation starts with the
+kickoff pair instead, `get_brand_voice` + `list_messaging_frameworks`; see
+`content-creation.md` step 1):
+
+- User named the framework **verbatim** → `get_messaging_framework({title})` directly — one
+  round trip.
+- **Fuzzy or partial** reference → `list_messaging_frameworks` to disambiguate, then
+  `get_messaging_framework({id})`. Each index entry carries a `description` — a short "when to
+  apply this" note (its topic plus any channel / content type, product, or audience it targets;
+  may be null) — use it to pick the framework the user means and to tell similarly-named
+  frameworks apart. It may also say where the framework sits in a hierarchy.
+- After `get_messaging_framework`, read the returned `description`; it may name a parent or
+  frameworks to apply alongside. When the framework will shape content, it's the most specific
+  framework, not the only one: pick and fetch the rest as `content-creation.md` step 1 sets out.
+- A `title` call returning a "multiple frameworks share that title" error → re-call with one
+  of the returned ids.
+- Pass exactly one of `id` or `title`, never both.
+
+## Playbook — connection & identity sanity
+
+- `whoami` reports who is authenticated (a user or an org-level key) and the organization.
+  Use it when results look wrong (e.g. an unexpected workspace) or the user asks who's
+  connected. It takes no inputs and is safe to call any time.
+
+## Empty-workspace semantics
+
+These responses mean the org hasn't configured that artifact yet — they are answers, not
+errors, and not retryable. (The server may append its own guidance after the opening sentence;
+match on the opening sentence.)
+
+| Response opens with | Meaning |
+|---|---|
+| "No personas found in this workspace." | No personas configured |
+| "No brand voice characteristics configured for this workspace." | No brand voice configured |
+| "No messaging frameworks configured for this workspace." | No frameworks configured |
+
+Don't retry, and don't let a missing artifact cancel the task — see `degraded-mode.md` for what
+still works in each case and how to shape the response.

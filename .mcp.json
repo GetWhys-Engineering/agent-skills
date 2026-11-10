@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "getwhys": {
+      "type": "http",
+      "url": "https://api.getwhys.io/mcp/org"
+    }
+  }
+}
