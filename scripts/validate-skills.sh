@@ -11,6 +11,7 @@
 #   - no .DS_Store / __MACOSX / obvious secret patterns
 #   - no obvious secret patterns anywhere else in the repo either
 #   - the Claude Tag package template is credential-free and no root .mcp.json exists
+#   - the Microsoft 365 app manifest names its MCP connection by ID only
 #
 # Exits non-zero on any violation. Runs on macOS bash 3.2 and Linux.
 
@@ -19,6 +20,7 @@ set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 SKILLS_DIR="$REPO_ROOT/skills"
 MCP_CONFIG="$REPO_ROOT/packaging/claude-tag/.mcp.json"
+M365_MANIFEST="$REPO_ROOT/packaging/m365/manifest.json"
 ROOT_MCP_CONFIG="$REPO_ROOT/.mcp.json"
 ARTIFACT_JSON="$REPO_ROOT/scripts/artifact-json.py"
 
@@ -44,6 +46,12 @@ else
   if ! python3 "$ARTIFACT_JSON" validate-mcp "$MCP_CONFIG"; then
     fail "packaging/claude-tag/.mcp.json is invalid"
   fi
+fi
+
+if [ ! -f "$M365_MANIFEST" ]; then
+  fail "missing packaging/m365/manifest.json"
+elif ! python3 "$ARTIFACT_JSON" validate-m365-manifest "$M365_MANIFEST"; then
+  fail "packaging/m365/manifest.json is invalid"
 fi
 
 # --- obvious secret patterns, repo-wide ---
