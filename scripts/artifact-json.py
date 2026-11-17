@@ -40,13 +40,18 @@ M365_AUTH_KEYS = {"type", "referenceId"}
 
 # The installable Microsoft 365 declarative-agent package is intentionally
 # separate from the existing agentConnectors Marketplace package above.
-M365_AGENT_FILES = {
+M365_AGENT_ROOT_FILES = {
     "manifest.json",
     "declarativeAgent.json",
     "ai-plugin.json",
     "Color.png",
     "Outline.png",
 }
+M365_AGENT_SKILL_NAME = "validate-gtm-output"
+M365_AGENT_SKILL_FOLDER = f"skills/{M365_AGENT_SKILL_NAME}"
+M365_AGENT_MAX_SKILL_FILES = 350
+M365_AGENT_MAX_SKILL_DIRECTORY_DEPTH = 3
+M365_AGENT_MAX_PACKAGE_BYTES = 10 * 1024 * 1024
 M365_AGENT_APP_SCHEMA = (
     "https://developer.microsoft.com/json-schemas/teams/v1.30/MicrosoftTeams.schema.json"
 )
@@ -427,6 +432,13 @@ def check_m365_agent_manifests(manifest, agent, plugin, label):
         fail(f"{label}: declarativeAgent.json must use schema v1.9")
     if agent.get("actions") != [{"id": "getwhysMcpAction", "file": "ai-plugin.json"}]:
         fail(f"{label}: declarativeAgent.json must reference ai-plugin.json exactly once")
+    if agent.get("agent_skills") != [
+        {"folder": f"./{M365_AGENT_SKILL_FOLDER}"}
+    ]:
+        fail(
+            f"{label}: declarativeAgent.json must reference the bundled "
+            f"{M365_AGENT_SKILL_NAME} skill exactly once"
+        )
     if not agent.get("instructions"):
         fail(f"{label}: declarativeAgent.json has no instructions")
 
@@ -502,20 +514,54 @@ def render_m365_agent(args):
 
 
 def verify_m365_agent_package(args):
+    repository_root = Path(__file__).resolve().parent.parent
+    skill_source = repository_root / "skills" / M365_AGENT_SKILL_NAME
+    if not skill_source.is_dir():
+        fail(f"canonical Microsoft 365 agent skill is missing: {skill_source}")
+    skill_files = sorted(path for path in skill_source.rglob("*") if path.is_file())
+    expected_skill_members = {
+        f"{M365_AGENT_SKILL_FOLDER}/{path.relative_to(skill_source).as_posix()}"
+        for path in skill_files
+    }
+    if len(expected_skill_members) > M365_AGENT_MAX_SKILL_FILES:
+        fail(
+            f"Microsoft 365 agent skill has {len(expected_skill_members)} files; "
+            f"maximum is {M365_AGENT_MAX_SKILL_FILES}"
+        )
+    too_deep = [
+        path.relative_to(skill_source).as_posix()
+        for path in skill_files
+        if len(path.relative_to(skill_source).parts) - 1
+        > M365_AGENT_MAX_SKILL_DIRECTORY_DEPTH
+    ]
+    if too_deep:
+        fail(f"Microsoft 365 agent skill files exceed depth 3: {too_deep}")
+    expected_members = M365_AGENT_ROOT_FILES | expected_skill_members
+
     try:
         with zipfile.ZipFile(args.archive) as archive:
+            package_bytes = sum(info.file_size for info in archive.infolist())
+            if package_bytes > M365_AGENT_MAX_PACKAGE_BYTES:
+                fail("Microsoft 365 agent package exceeds the 10 MB limit")
             members = {
                 info.filename
                 for info in archive.infolist()
                 if not info.is_dir()
             }
-            if members != M365_AGENT_FILES:
-                missing = sorted(M365_AGENT_FILES - members)
-                extra = sorted(members - M365_AGENT_FILES)
+            if members != expected_members:
+                missing = sorted(expected_members - members)
+                extra = sorted(members - expected_members)
                 fail(
                     f"Microsoft 365 agent package has wrong files; "
                     f"missing={missing}, extra={extra}"
                 )
+            for source_path in skill_files:
+                member = (
+                    f"{M365_AGENT_SKILL_FOLDER}/"
+                    f"{source_path.relative_to(skill_source).as_posix()}"
+                )
+                if archive.read(member) != source_path.read_bytes():
+                    fail(f"packaged {member} differs from the canonical skill source")
             manifest = read_member_json(archive, "manifest.json")
             agent = read_member_json(archive, "declarativeAgent.json")
             plugin = read_member_json(archive, "ai-plugin.json")

@@ -27,6 +27,11 @@ provision:
     writeToEnvironmentFile:
       configurationId: GETWHYS_DCR_AUTH_ID
 
+  - uses: script
+    name: Bundle the canonical GetWhys skill
+    with:
+      run: node ./sync-agent-skills.mjs
+
   - uses: teamsApp/zipAppPackage
     with:
       manifestPath: ./appPackage/manifest.json
@@ -51,6 +56,11 @@ provision:
       shareLink: SHARE_LINK
 
 publish:
+  - uses: script
+    name: Bundle the canonical GetWhys skill
+    with:
+      run: node ./sync-agent-skills.mjs
+
   - uses: teamsApp/zipAppPackage
     with:
       manifestPath: ./appPackage/manifest.json

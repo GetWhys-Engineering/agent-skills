@@ -14,9 +14,15 @@ Marketplace app that uses `agentConnectors` and `ConnectionVault`. Do not copy
 ```text
 manifest.json (Microsoft 365 app manifest 1.30)
 └── copilotAgents.declarativeAgents → declarativeAgent.json (v1.9)
-    └── actions → ai-plugin.json (v2.4)
-        └── RemoteMCPServer → https://api.getwhys.io/mcp/org
+    ├── actions → ai-plugin.json (v2.4)
+    │   └── RemoteMCPServer → https://api.getwhys.io/mcp/org
+    └── agent_skills → skills/validate-gtm-output/SKILL.md
 ```
+
+The bundled agent skill is copied from the repository's canonical
+`skills/validate-gtm-output/` directory at build time, including its reference
+files. Do not maintain a second copy under `appPackage/`; the packaging script
+and Agents Toolkit lifecycle both stage the canonical source automatically.
 
 `ai-plugin.json` omits `mcp_tool_description`, has an empty `functions` array,
 and dispatches `run_for_functions: ["*"]`. Microsoft therefore discovers tools
@@ -30,6 +36,7 @@ and the GetWhys authorization server and must never be committed.
 ## Developer prerequisites
 
 - VS Code and Microsoft 365 Agents Toolkit 6.12.0 or later.
+- Node.js 20 or 22 (required by Agents Toolkit and the skill staging step).
 - A work or school Microsoft 365 development account with a Microsoft 365
   Copilot license.
 - Permission to upload custom apps and access Copilot in the development tenant.
@@ -50,9 +57,10 @@ From the repository root:
 ```
 
 This uses non-live sentinel IDs in a temporary package, validates all three
-official schemas and the ZIP layout, and performs read-only checks of GetWhys
-OAuth discovery metadata. It never registers an OAuth client or modifies a
-Microsoft tenant. Set `SKIP_REMOTE_DCR_CHECK=1` only for offline validation.
+official schemas, verifies the bundled skill byte-for-byte against its canonical
+source, checks the ZIP layout, and performs read-only checks of GetWhys OAuth
+discovery metadata. It never registers an OAuth client or modifies a Microsoft
+tenant. Set `SKIP_REMOTE_DCR_CHECK=1` only for offline validation.
 
 ## Provision DCR in a development tenant
 
@@ -137,4 +145,5 @@ Official Microsoft references used for this implementation:
 - [Configure DCR](https://learn.microsoft.com/en-us/plugins/plugin-authentication-dynamic-client-registration)
 - [Plugin manifest schema 2.4](https://learn.microsoft.com/en-us/microsoft-365/copilot/extensibility/plugin-manifest-2.4)
 - [Declarative agent schema 1.9](https://learn.microsoft.com/en-us/microsoft-365-copilot/extensibility/declarative-agent-manifest)
+- [Add skills to declarative agents](https://learn.microsoft.com/en-us/microsoft-365-copilot/extensibility/build-declarative-agents-add-custom-skills)
 - [Publish publicly through Microsoft Marketplace](https://learn.microsoft.com/en-us/microsoft-365/copilot/extensibility/publish-plugin-publicly)

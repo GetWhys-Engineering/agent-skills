@@ -36,5 +36,10 @@
       "id": "getwhysMcpAction",
       "file": "ai-plugin.json"
     }
+  ],
+  "agent_skills": [
+    {
+      "folder": "./skills/validate-gtm-output"
+    }
   ]
 }

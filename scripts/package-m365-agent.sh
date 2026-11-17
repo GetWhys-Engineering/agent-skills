@@ -4,6 +4,7 @@ set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 SOURCE_DIR="$REPO_ROOT/packaging/m365-agent/appPackage"
+SKILL_SOURCE_DIR="$REPO_ROOT/skills/validate-gtm-output"
 ARTIFACT_JSON="$REPO_ROOT/scripts/artifact-json.py"
 DIST_DIR="$REPO_ROOT/dist"
 STAGE_DIR="$DIST_DIR/.m365-agent-stage"
@@ -36,6 +37,8 @@ mkdir -p "$STAGE_DIR" "$(dirname "$OUT_ZIP")"
 python3 "$ARTIFACT_JSON" render-m365-agent -- \
   "$SOURCE_DIR" "$STAGE_DIR" "$APP_ID" "$AUTH_ID" "$VERSION" "$APP_NAME_SUFFIX"
 cp "$SOURCE_DIR/Color.png" "$SOURCE_DIR/Outline.png" "$STAGE_DIR/"
+mkdir -p "$STAGE_DIR/skills"
+cp -R "$SKILL_SOURCE_DIR" "$STAGE_DIR/skills/"
 
 check_schema() {
   schema="$1"

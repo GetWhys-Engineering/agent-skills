@@ -9,11 +9,14 @@ codes, client secrets, or customer data.
 - [ ] `./scripts/validate-m365-agent.sh` passes.
 - [ ] The exact production ZIP passes `./scripts/package-m365-agent.sh` and
       Microsoft `teamsApp/validateAppPackage` validation.
-- [ ] The ZIP contains only `manifest.json`, `declarativeAgent.json`,
-      `ai-plugin.json`, `Color.png`, and `Outline.png`.
+- [ ] The ZIP contains the five root package files plus only the canonical
+      `skills/validate-gtm-output/` skill and its reference files.
 - [ ] `manifest.json` uses numbered schema 1.30 and references the declarative
       agent through `copilotAgents.declarativeAgents`.
 - [ ] The agent references `ai-plugin.json` through `actions`.
+- [ ] The agent references `./skills/validate-gtm-output` through
+      `agent_skills`, and its packaged files match the canonical repository
+      skill byte-for-byte.
 - [ ] The plugin uses `RemoteMCPServer`, the exact GetWhys URL,
       `OAuthPluginVault`, the provisioned DCR auth-configuration ID, wildcard
       dispatch, and no `mcp_tool_description`.
