@@ -1,0 +1,27 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/copilot/plugin/v2.4/schema.json",
+  "schema_version": "v2.4",
+  "name_for_human": "GetWhys",
+  "namespace": "getwhys",
+  "description_for_human": "Research buyers and evaluate content with GetWhys evidence.",
+  "description_for_model": "Use GetWhys tools to retrieve buyer interviews, market evidence, organization personas, brand voice, messaging frameworks, and uploaded documents before making research claims or evaluating content.",
+  "contact_email": "support@getwhys.io",
+  "legal_info_url": "https://www.getwhys.io/terms-and-conditions",
+  "privacy_policy_url": "https://www.getwhys.io/privacy-policy",
+  "functions": [],
+  "runtimes": [
+    {
+      "type": "RemoteMCPServer",
+      "spec": {
+        "url": "https://api.getwhys.io/mcp/org"
+      },
+      "run_for_functions": [
+        "*"
+      ],
+      "auth": {
+        "type": "OAuthPluginVault",
+        "reference_id": "${{GETWHYS_DCR_AUTH_ID}}"
+      }
+    }
+  ]
+}

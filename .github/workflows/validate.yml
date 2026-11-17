@@ -25,3 +25,5 @@ jobs:
         run: ./scripts/package-openai-plugin.sh
       - name: Package Microsoft 365 Marketplace app
         run: ./scripts/package-m365-app.sh
+      - name: Validate Microsoft 365 declarative agent
+        run: ./scripts/validate-m365-agent.sh

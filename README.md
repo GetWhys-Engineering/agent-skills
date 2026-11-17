@@ -52,6 +52,21 @@ packaged files since the previous `v*` tag; set `RELEASE_NOTES` to override
 them. Every release attaches this ZIP. The script reports missing review
 materials; a draft ZIP does not establish public submission readiness.
 
+### Microsoft 365 Copilot declarative agent
+
+The source for the installable **GetWhys Buyer Intelligence** declarative agent
+is under [`packaging/m365-agent/`](packaging/m365-agent/README.md). It bundles a
+declarative agent and a dynamically discovered remote-MCP action so customers
+install the app, sign in to GetWhys, and start chatting without creating an
+agent or attaching tools.
+
+This is separate from the existing connector-only `getwhys-m365.zip`. Validate
+the agent source and public OAuth metadata with
+`./scripts/validate-m365-agent.sh`. A release ZIP can be built only after
+Microsoft's supported DCR provisioning workflow supplies the real Microsoft app
+ID and authentication-configuration ID; no OAuth client credentials belong in
+the repository.
+
 ### No CLI? Org admin? (Claude.ai / Desktop / Cowork, ChatGPT Business/Enterprise)
 
 Download the skill's `.zip` above, then upload it in settings:

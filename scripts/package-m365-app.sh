@@ -34,7 +34,7 @@ ARTIFACT_JSON="$REPO_ROOT/scripts/artifact-json.py"
 DIST_DIR="$REPO_ROOT/dist"
 STAGE_DIR="$DIST_DIR/.m365-stage"
 OUT_ZIP="$DIST_DIR/getwhys-m365.zip"
-CHECK_JSONSCHEMA="check-jsonschema==0.38.2"
+CHECK_JSONSCHEMA="check-jsonschema==0.36.2"
 
 if [ -z "${VERSION:-}" ]; then
   VERSION="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["version"])' \

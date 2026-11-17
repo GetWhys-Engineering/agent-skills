@@ -1,0 +1,74 @@
+# yaml-language-server: $schema=https://aka.ms/m365-agents-toolkits/v1.13/yaml.schema.json
+version: v1.13
+
+environmentFolderPath: ./env
+
+provision:
+  - uses: teamsApp/create
+    with:
+      name: GetWhys Buyer Intelligence${{APP_NAME_SUFFIX}}
+    writeToEnvironmentFile:
+      teamsAppId: TEAMS_APP_ID
+
+  # This is the supported Microsoft DCR workflow for a declarative-agent MCP
+  # action. It registers a confidential OAuth client through GetWhys RFC 7591
+  # metadata and writes Microsoft's auth-configuration ID, not an OAuth client
+  # ID, to GETWHYS_DCR_AUTH_ID.
+  - uses: dcr/register
+    with:
+      name: getwhys-buyer-intelligence-dcr
+      appId: ${{TEAMS_APP_ID}}
+      applicableToApps: AnyApp
+      targetAudience: AnyTenant
+      includePersonalMicrosoftAccounts: false
+      mcpResourceUrl: https://api.getwhys.io/mcp/org
+      targetUrlsShouldStartWith:
+        - https://api.getwhys.io/mcp/org
+    writeToEnvironmentFile:
+      configurationId: GETWHYS_DCR_AUTH_ID
+
+  - uses: teamsApp/zipAppPackage
+    with:
+      manifestPath: ./appPackage/manifest.json
+      outputZipPath: ./appPackage/build/getwhys-m365-agent.${{TEAMSFX_ENV}}.zip
+      outputFolder: ./appPackage/build
+
+  - uses: teamsApp/validateAppPackage
+    with:
+      appPackagePath: ./appPackage/build/getwhys-m365-agent.${{TEAMSFX_ENV}}.zip
+
+  - uses: teamsApp/update
+    with:
+      appPackagePath: ./appPackage/build/getwhys-m365-agent.${{TEAMSFX_ENV}}.zip
+
+  - uses: copilotAgent/publish
+    with:
+      appPackagePath: ./appPackage/build/getwhys-m365-agent.${{TEAMSFX_ENV}}.zip
+      scope: ${{AGENT_SCOPE}}
+    writeToEnvironmentFile:
+      titleId: M365_TITLE_ID
+      appId: M365_APP_ID
+      shareLink: SHARE_LINK
+
+publish:
+  - uses: teamsApp/zipAppPackage
+    with:
+      manifestPath: ./appPackage/manifest.json
+      outputZipPath: ./appPackage/build/getwhys-m365-agent.${{TEAMSFX_ENV}}.zip
+      outputFolder: ./appPackage/build
+
+  - uses: teamsApp/validateAppPackage
+    with:
+      appPackagePath: ./appPackage/build/getwhys-m365-agent.${{TEAMSFX_ENV}}.zip
+
+  - uses: teamsApp/update
+    with:
+      appPackagePath: ./appPackage/build/getwhys-m365-agent.${{TEAMSFX_ENV}}.zip
+
+  - uses: copilotAgent/publish
+    with:
+      appPackagePath: ./appPackage/build/getwhys-m365-agent.${{TEAMSFX_ENV}}.zip
+      scope: tenant
+    writeToEnvironmentFile:
+      titleId: M365_PUBLISHED_TITLE_ID
+      appId: M365_PUBLISHED_APP_ID

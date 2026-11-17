@@ -1,0 +1,40 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/teams/v1.30/MicrosoftTeams.schema.json",
+  "manifestVersion": "1.30",
+  "version": "${{APP_VERSION}}",
+  "id": "${{TEAMS_APP_ID}}",
+  "developer": {
+    "name": "Get Whys, Inc.",
+    "websiteUrl": "https://www.getwhys.io",
+    "privacyUrl": "https://www.getwhys.io/privacy-policy",
+    "termsOfUseUrl": "https://www.getwhys.io/terms-and-conditions"
+  },
+  "name": {
+    "short": "GetWhys Buyer Intelligence${{APP_NAME_SUFFIX}}",
+    "full": "GetWhys Buyer Intelligence${{APP_NAME_SUFFIX}}"
+  },
+  "description": {
+    "short": "Research B2B buyers and evaluate content using trusted buyer evidence.",
+    "full": "GetWhys Buyer Intelligence brings proprietary B2B buyer interviews and your organization's research, personas, brand voice, messaging frameworks, and uploaded documents into Microsoft 365 Copilot. An active GetWhys account and access to a GetWhys organization are required."
+  },
+  "icons": {
+    "outline": "Outline.png",
+    "color": "Color.png"
+  },
+  "accentColor": "#4254A4",
+  "supportsChannelFeatures": "tier1",
+  "composeExtensions": [],
+  "copilotAgents": {
+    "declarativeAgents": [
+      {
+        "id": "getwhysBuyerIntelligence",
+        "file": "declarativeAgent.json"
+      }
+    ]
+  },
+  "permissions": [
+    "identity",
+    "messageTeamMembers"
+  ],
+  "validDomains": []
+}

@@ -21,6 +21,9 @@ jobs:
       - name: Validate skills
         run: ./scripts/validate-skills.sh
 
+      - name: Validate Microsoft 365 declarative agent
+        run: ./scripts/validate-m365-agent.sh
+
       - name: Package per-skill zips
         run: ./scripts/package-skills.sh
 

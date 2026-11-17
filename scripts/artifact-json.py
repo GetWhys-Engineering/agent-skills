@@ -38,6 +38,31 @@ M365_MCP_URL = "https://api.getwhys.io/mcp/org"
 M365_SERVER_KEYS = {"mcpServerUrl", "authorization", "mcpToolDescription"}
 M365_AUTH_KEYS = {"type", "referenceId"}
 
+# The installable Microsoft 365 declarative-agent package is intentionally
+# separate from the existing agentConnectors Marketplace package above.
+M365_AGENT_FILES = {
+    "manifest.json",
+    "declarativeAgent.json",
+    "ai-plugin.json",
+    "Color.png",
+    "Outline.png",
+}
+M365_AGENT_APP_SCHEMA = (
+    "https://developer.microsoft.com/json-schemas/teams/v1.30/MicrosoftTeams.schema.json"
+)
+M365_AGENT_DA_SCHEMA = (
+    "https://developer.microsoft.com/json-schemas/copilot/declarative-agent/v1.9/schema.json"
+)
+M365_AGENT_PLUGIN_SCHEMA = (
+    "https://developer.microsoft.com/json-schemas/copilot/plugin/v2.4/schema.json"
+)
+M365_AGENT_PLACEHOLDERS = {
+    "${{TEAMS_APP_ID}}": "app_id",
+    "${{GETWHYS_DCR_AUTH_ID}}": "auth_id",
+    "${{APP_VERSION}}": "version",
+    "${{APP_NAME_SUFFIX}}": "app_name_suffix",
+}
+
 # Microsoft's package rules for agentSkills, from "Build plugins for Copilot
 # Cowork" (learn.microsoft.com/microsoft-365/copilot/cowork/cowork-plugin-development).
 M365_MAX_SKILLS = 20
@@ -365,6 +390,147 @@ def verify_m365_package(args):
                 fail(f"{info.filename} uses a Windows reserved name")
 
 
+def substitute_m365_agent(value, replacements):
+    if isinstance(value, dict):
+        return {
+            key: substitute_m365_agent(item, replacements)
+            for key, item in value.items()
+        }
+    if isinstance(value, list):
+        return [substitute_m365_agent(item, replacements) for item in value]
+    if isinstance(value, str):
+        for placeholder, replacement in replacements.items():
+            value = value.replace(placeholder, replacement)
+    return value
+
+
+def check_m365_agent_manifests(manifest, agent, plugin, label):
+    """Validate the package wiring and the security-sensitive MCP settings."""
+    if manifest.get("$schema") != M365_AGENT_APP_SCHEMA:
+        fail(f"{label}: manifest.json must use the numbered v1.30 schema")
+    if manifest.get("manifestVersion") != "1.30":
+        fail(f"{label}: manifest.json manifestVersion must be 1.30")
+    if not re.fullmatch(
+        r"[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}",
+        manifest.get("id", ""),
+    ):
+        fail(f"{label}: manifest.json id must be a provisioned GUID")
+    if not re.fullmatch(r"\d+\.\d+\.\d+", manifest.get("version", "")):
+        fail(f"{label}: manifest.json version must be semantic X.Y.Z")
+    if "agentConnectors" in manifest:
+        fail(f"{label}: the declarative-agent package must not declare agentConnectors")
+    refs = ((manifest.get("copilotAgents") or {}).get("declarativeAgents") or [])
+    if refs != [{"id": "getwhysBuyerIntelligence", "file": "declarativeAgent.json"}]:
+        fail(f"{label}: manifest.json must reference declarativeAgent.json exactly once")
+
+    if agent.get("$schema") != M365_AGENT_DA_SCHEMA or agent.get("version") != "v1.9":
+        fail(f"{label}: declarativeAgent.json must use schema v1.9")
+    if agent.get("actions") != [{"id": "getwhysMcpAction", "file": "ai-plugin.json"}]:
+        fail(f"{label}: declarativeAgent.json must reference ai-plugin.json exactly once")
+    if not agent.get("instructions"):
+        fail(f"{label}: declarativeAgent.json has no instructions")
+
+    if plugin.get("$schema") != M365_AGENT_PLUGIN_SCHEMA:
+        fail(f"{label}: ai-plugin.json must use plugin schema v2.4")
+    if plugin.get("schema_version") != "v2.4":
+        fail(f"{label}: ai-plugin.json schema_version must be v2.4")
+    if plugin.get("functions") != []:
+        fail(f"{label}: ai-plugin.json functions must stay empty for dynamic discovery")
+    runtimes = plugin.get("runtimes") or []
+    if len(runtimes) != 1:
+        fail(f"{label}: ai-plugin.json must declare exactly one runtime")
+    runtime = runtimes[0]
+    if runtime.get("type") != "RemoteMCPServer":
+        fail(f"{label}: ai-plugin.json runtime must be RemoteMCPServer")
+    spec = runtime.get("spec") or {}
+    if spec.get("url") != M365_MCP_URL:
+        fail(f"{label}: ai-plugin.json must use {M365_MCP_URL}")
+    if "mcp_tool_description" in spec:
+        fail(f"{label}: omit mcp_tool_description to keep dynamic tool discovery")
+    if runtime.get("run_for_functions") != ["*"]:
+        fail(f"{label}: RemoteMCPServer must dispatch all discovered tools with ['*']")
+    auth = runtime.get("auth") or {}
+    if auth.get("type") != "OAuthPluginVault":
+        fail(f"{label}: declarative-agent MCP auth must use OAuthPluginVault")
+    reference_id = auth.get("reference_id", "")
+    if not reference_id or reference_id == "shared_getwhysmcp":
+        fail(
+            f"{label}: reference_id must be a provisioned DCR auth-configuration ID, "
+            "never the connector's ConnectionVault reference"
+        )
+    if "${{" in reference_id:
+        fail(f"{label}: unresolved DCR auth-configuration placeholder")
+
+    serialized = json.dumps([manifest, agent, plugin]).lower()
+    forbidden = ("client_secret", "access_token", "refresh_token", "authorization_code")
+    found = [name for name in forbidden if name in serialized]
+    if found:
+        fail(f"{label}: manifests contain credential-bearing fields {found}")
+
+
+def render_m365_agent(args):
+    source = Path(args.source)
+    output = Path(args.output)
+    if not source.is_dir():
+        fail(f"Microsoft 365 agent source directory does not exist: {source}")
+    if args.auth_id == "shared_getwhysmcp":
+        fail("the declarative agent cannot reuse the ConnectionVault reference")
+    if not args.auth_id.strip():
+        fail("GETWHYS_DCR_AUTH_ID is empty; provision DCR before packaging")
+    if not re.fullmatch(r"\d+\.\d+\.\d+", args.version):
+        fail(f"version {args.version!r} is not X.Y.Z")
+
+    replacements = {
+        placeholder: str(getattr(args, name))
+        for placeholder, name in M365_AGENT_PLACEHOLDERS.items()
+    }
+    rendered = {}
+    for filename in ("manifest.json", "declarativeAgent.json", "ai-plugin.json"):
+        rendered[filename] = substitute_m365_agent(
+            read_json(source / filename), replacements
+        )
+
+    check_m365_agent_manifests(
+        rendered["manifest.json"],
+        rendered["declarativeAgent.json"],
+        rendered["ai-plugin.json"],
+        "rendered Microsoft 365 agent",
+    )
+    output.mkdir(parents=True, exist_ok=True)
+    for filename, value in rendered.items():
+        write_json(output / filename, value)
+
+
+def verify_m365_agent_package(args):
+    try:
+        with zipfile.ZipFile(args.archive) as archive:
+            members = {
+                info.filename
+                for info in archive.infolist()
+                if not info.is_dir()
+            }
+            if members != M365_AGENT_FILES:
+                missing = sorted(M365_AGENT_FILES - members)
+                extra = sorted(members - M365_AGENT_FILES)
+                fail(
+                    f"Microsoft 365 agent package has wrong files; "
+                    f"missing={missing}, extra={extra}"
+                )
+            manifest = read_member_json(archive, "manifest.json")
+            agent = read_member_json(archive, "declarativeAgent.json")
+            plugin = read_member_json(archive, "ai-plugin.json")
+            for icon in ("Color.png", "Outline.png"):
+                data = archive.read(icon)
+                if not data.startswith(PNG_SIGNATURE):
+                    fail(f"packaged {icon} is not a PNG")
+    except (OSError, zipfile.BadZipFile) as error:
+        fail(f"cannot read Microsoft 365 agent package {args.archive}: {error}")
+
+    check_m365_agent_manifests(
+        manifest, agent, plugin, "packaged Microsoft 365 agent"
+    )
+
+
 def parse_args():
     parser = argparse.ArgumentParser(description=__doc__)
     commands = parser.add_subparsers(dest="command", required=True)
@@ -412,6 +578,19 @@ def parse_args():
     m365_package = commands.add_parser("verify-m365-package")
     m365_package.add_argument("archive")
     m365_package.set_defaults(run=verify_m365_package)
+
+    m365_agent_render = commands.add_parser("render-m365-agent")
+    m365_agent_render.add_argument("source")
+    m365_agent_render.add_argument("output")
+    m365_agent_render.add_argument("app_id")
+    m365_agent_render.add_argument("auth_id")
+    m365_agent_render.add_argument("version")
+    m365_agent_render.add_argument("app_name_suffix")
+    m365_agent_render.set_defaults(run=render_m365_agent)
+
+    m365_agent_package = commands.add_parser("verify-m365-agent-package")
+    m365_agent_package.add_argument("archive")
+    m365_agent_package.set_defaults(run=verify_m365_agent_package)
 
     return parser.parse_args()
 
