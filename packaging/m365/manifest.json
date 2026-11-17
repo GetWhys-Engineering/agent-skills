@@ -36,8 +36,8 @@
         "remoteMcpServer": {
           "mcpServerUrl": "https://api.getwhys.io/mcp/org",
           "authorization": {
-            "type": "ConnectionVault",
-            "referenceId": "shared_getwhysmcp"
+            "type": "DynamicClientRegistration",
+            "referenceId": "MDM0Nzk0OWYtNmI1OC00NDQ2LTkwM2QtMDI2YmMwMzIxNmJhIyNhZWFkYWEzOC0xMmNiLTQ3ZTItOTc0MC1lNGUzMGUwNWZmZjI="
           }
         }
       }
