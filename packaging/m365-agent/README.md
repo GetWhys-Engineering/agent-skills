@@ -94,9 +94,35 @@ from each user's GetWhys sign-in and authorization grant.
 
 ## Build the exact release ZIP
 
-Use a separately provisioned production environment with an empty
-`APP_NAME_SUFFIX`, the intended semantic `APP_VERSION`, and the real Microsoft
-IDs. Then load it and build:
+The two production IDs come from the approved Agents Toolkit **Provision**
+lifecycle; they are not values GetWhys invents:
+
+- `TEAMS_APP_ID` is the Microsoft 365 app GUID returned by `teamsApp/create`.
+- `GETWHYS_DCR_AUTH_ID` is the Microsoft authentication-configuration ID
+  returned by `dcr/register`. It is not the dynamically registered OAuth
+  `client_id`, and it is not `shared_getwhysmcp`.
+
+Provision them once for production:
+
+1. Copy `env/.env.prod.example` to `env/.env.prod` and set the intended semantic
+   `APP_VERSION`. Keep `APP_NAME_SUFFIX` empty.
+2. Open `packaging/m365-agent/` in VS Code, select the `prod` environment, sign
+   in to the publisher tenant, and run **Provision** after tenant-owner approval.
+3. Agents Toolkit writes `TEAMS_APP_ID` and `GETWHYS_DCR_AUTH_ID` into
+   `env/.env.prod`. Keep that generated file local.
+4. In GitHub, open **Settings → Secrets and variables → Actions →
+   Variables** and create repository variables named `TEAMS_APP_ID` and
+   `GETWHYS_DCR_AUTH_ID` using those two values. They are identifiers rather
+   than credentials, so do not store the generated OAuth client secret or any
+   token in GitHub.
+
+The tag-release workflow maps those repository variables into the packaging
+process and derives `VERSION` from the `v*` tag. Defining a GitHub variable does
+not inject it automatically; the explicit `env` mapping in
+`.github/workflows/release.yml` performs that handoff. A missing value fails the
+release instead of producing a package with an unresolved placeholder.
+
+To build the same production package locally, load the provisioned environment:
 
 ```bash
 set -a
@@ -108,6 +134,10 @@ set +a
 The output is `dist/getwhys-m365-agent.zip`. The build fails if either Microsoft
 ID is absent, if the connector-only reference is reused, if static MCP tools are
 introduced, or if credentials appear in a manifest.
+
+If production provisioning is intentionally repeated and Microsoft returns a
+new app or authentication-configuration ID, update the corresponding GitHub
+variable before creating the release tag.
 
 Do not submit a ZIP produced with the sentinel values used by the validation
 script. Submit only the exact production ZIP that passed the full test checklist.

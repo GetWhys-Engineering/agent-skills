@@ -37,6 +37,14 @@ jobs:
         env:
           VERSION: ${{ github.ref_name }}
 
+      - name: Package Microsoft 365 Copilot agent
+        run: ./scripts/package-m365-agent.sh
+        env:
+          TEAMS_APP_ID: ${{ vars.TEAMS_APP_ID }}
+          GETWHYS_DCR_AUTH_ID: ${{ vars.GETWHYS_DCR_AUTH_ID }}
+          VERSION: ${{ github.ref_name }}
+          APP_NAME_SUFFIX: ""
+
       - name: Package Claude Tag plugin
         run: ./scripts/package-plugin.sh
         env:
