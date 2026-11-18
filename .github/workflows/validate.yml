@@ -25,5 +25,9 @@ jobs:
         run: ./scripts/package-openai-plugin.sh
       - name: Package Microsoft 365 Marketplace app
         run: ./scripts/package-m365-app.sh
+      - name: Package M365 Copilot Cowork plugin
+        run: ./scripts/package-cowork-plugin.sh
       - name: Validate Microsoft 365 declarative agent
         run: ./scripts/validate-m365-agent.sh
+        env:
+          SKIP_REMOTE_DCR_CHECK: "1"

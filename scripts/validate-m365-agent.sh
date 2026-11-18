@@ -3,6 +3,11 @@
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+if ! command -v uvx >/dev/null 2>&1 && ! command -v pipx >/dev/null 2>&1; then
+  echo "FAIL: Microsoft agent validation requires uvx or pipx for schema checks." >&2
+  exit 1
+fi
+
 TEMP_DIR="$(mktemp -d)"
 TEST_ZIP="$TEMP_DIR/getwhys-m365-agent.schema-test.zip"
 HEADERS_FILE="$TEMP_DIR/mcp-headers"

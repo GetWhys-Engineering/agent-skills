@@ -335,34 +335,57 @@ def verify_m365_package(args):
         with zipfile.ZipFile(args.archive) as archive:
             members = {info.filename: info for info in archive.infolist()}
             manifest = read_member_json(archive, "manifest.json")
-            skill_texts = {}
-            for entry in manifest.get("agentSkills", []):
-                folder = entry.get("folder", "").removeprefix("./").rstrip("/")
-                member = f"{folder}/SKILL.md"
-                if member not in members:
-                    fail(f"agentSkills folder {folder!r} has no SKILL.md in the package")
-                skill_texts[folder] = archive.read(member).decode("utf-8")
+            check_microsoft_skills(archive, manifest.get("agentSkills", []))
     except (OSError, zipfile.BadZipFile) as error:
         fail(f"cannot read package {args.archive}: {error}")
 
-    check_m365_manifest(
-        {key: value for key, value in manifest.items() if key != "agentSkills"},
-        "packaged manifest.json",
-    )
+    if not args.cowork:
+        check_m365_manifest(
+            {key: value for key, value in manifest.items() if key != "agentSkills"},
+            "packaged manifest.json",
+        )
     for icon in (manifest.get("icons") or {}).values():
         if icon not in members:
             fail(f"icon {icon!r} named in manifest.json is missing from the package")
 
+
+def check_microsoft_skills(archive, entries, *, declarative_agent=False):
+    """Share skill hygiene while retaining each Microsoft surface's limits."""
+    members = {info.filename: info for info in archive.infolist()}
     for name in members:
         parts = name.rstrip("/").split("/")
-        if any(part.startswith(".") or part == "__MACOSX" for part in parts):
+        if any(part.startswith(".") or part == "__MACOSX" for part in parts) or "\\" in name:
             fail(f"hidden or macOS metadata entry {name!r} in the package")
 
-    folders = [entry["folder"] for entry in manifest.get("agentSkills", [])]
+    folders = [
+        entry.get("folder", "").removeprefix("./").rstrip("/")
+        for entry in entries
+    ]
+    maximum_skills = 8 if declarative_agent else M365_MAX_SKILLS
+    if not folders or len(folders) > maximum_skills:
+        fail(f"package must contain between 1 and {maximum_skills} Microsoft skills")
     if len(folders) != len(set(folders)):
-        fail("agentSkills lists a folder twice")
+        fail("Microsoft skills list a folder twice")
 
-    for folder, text in skill_texts.items():
+    if declarative_agent:
+        if sum(info.file_size for info in members.values()) > M365_AGENT_MAX_PACKAGE_BYTES:
+            fail("Microsoft 365 agent package exceeds the 10 MB limit")
+        skill_file_count = sum(
+            not info.is_dir() and any(member.startswith(f"{folder}/") for folder in folders)
+            for member, info in members.items()
+        )
+        if skill_file_count > M365_AGENT_MAX_SKILL_FILES:
+            fail(f"Microsoft 365 agent skills exceed {M365_AGENT_MAX_SKILL_FILES} files")
+
+    for folder in folders:
+        if not folder or folder.startswith("/") or any(
+            part in ("", ".", "..") for part in folder.split("/")
+        ):
+            fail(f"unsafe Microsoft skill folder {folder!r}")
+        member = f"{folder}/SKILL.md"
+        if member not in members:
+            fail(f"Microsoft skill folder {folder!r} has no SKILL.md in the package")
+        text = archive.read(member).decode("utf-8")
         frontmatter = re.match(r"---\n(.*?)\n---\n", text, re.S)
         if not frontmatter:
             fail(f"{folder}/SKILL.md has no YAML frontmatter")
@@ -381,14 +404,23 @@ def verify_m365_package(args):
             and not member.endswith("/")
             and member != f"{folder}/SKILL.md"
         ]
-        if len(companions) > M365_MAX_COMPANIONS:
+        if not declarative_agent and len(companions) > M365_MAX_COMPANIONS:
             fail(f"{folder} has {len(companions)} companion files (max {M365_MAX_COMPANIONS})")
-        if sum(info.file_size for info in companions) > M365_MAX_COMPANION_TOTAL:
+        if (
+            not declarative_agent
+            and sum(info.file_size for info in companions) > M365_MAX_COMPANION_TOTAL
+        ):
             fail(f"{folder} companion files exceed 10 MB in total")
         for info in companions:
             base = info.filename.split("/")[-1]
-            if info.file_size > M365_MAX_COMPANION_BYTES:
+            if not declarative_agent and info.file_size > M365_MAX_COMPANION_BYTES:
                 fail(f"{info.filename} is larger than 5 MB")
+            relative_parts = info.filename[len(folder) + 1:].split("/")
+            if (
+                declarative_agent
+                and len(relative_parts) - 1 > M365_AGENT_MAX_SKILL_DIRECTORY_DEPTH
+            ):
+                fail(f"{info.filename} exceeds skill directory depth 3")
             if "\\" in info.filename or not M365_SAFE_FILE_NAME.fullmatch(base):
                 fail(f"{info.filename} has characters Microsoft rejects")
             if WINDOWS_RESERVED.fullmatch(base):
@@ -462,6 +494,14 @@ def check_m365_agent_manifests(manifest, agent, plugin, label):
     if runtime.get("run_for_functions") != ["*"]:
         fail(f"{label}: RemoteMCPServer must dispatch all discovered tools with ['*']")
     auth = runtime.get("auth") or {}
+    for value, allowed, where in (
+        (runtime, {"type", "spec", "run_for_functions", "auth"}, "runtime"),
+        (spec, {"url"}, "spec"),
+        (auth, {"type", "reference_id"}, "auth"),
+    ):
+        extra = set(value) - allowed
+        if extra:
+            fail(f"{label}: unexpected {where} keys {sorted(extra)}")
     if auth.get("type") != "OAuthPluginVault":
         fail(f"{label}: declarative-agent MCP auth must use OAuthPluginVault")
     reference_id = auth.get("reference_id", "")
@@ -473,7 +513,10 @@ def check_m365_agent_manifests(manifest, agent, plugin, label):
     if "${{" in reference_id:
         fail(f"{label}: unresolved DCR auth-configuration placeholder")
 
-    serialized = json.dumps([manifest, agent, plugin]).lower()
+    serialized = json.dumps([manifest, agent, plugin])
+    if "${{" in serialized:
+        fail(f"{label}: unresolved ${{{{...}}}} placeholder")
+    serialized = serialized.lower()
     forbidden = ("client_secret", "access_token", "refresh_token", "authorization_code")
     found = [name for name in forbidden if name in serialized]
     if found:
@@ -523,26 +566,10 @@ def verify_m365_agent_package(args):
         f"{M365_AGENT_SKILL_FOLDER}/{path.relative_to(skill_source).as_posix()}"
         for path in skill_files
     }
-    if len(expected_skill_members) > M365_AGENT_MAX_SKILL_FILES:
-        fail(
-            f"Microsoft 365 agent skill has {len(expected_skill_members)} files; "
-            f"maximum is {M365_AGENT_MAX_SKILL_FILES}"
-        )
-    too_deep = [
-        path.relative_to(skill_source).as_posix()
-        for path in skill_files
-        if len(path.relative_to(skill_source).parts) - 1
-        > M365_AGENT_MAX_SKILL_DIRECTORY_DEPTH
-    ]
-    if too_deep:
-        fail(f"Microsoft 365 agent skill files exceed depth 3: {too_deep}")
     expected_members = M365_AGENT_ROOT_FILES | expected_skill_members
 
     try:
         with zipfile.ZipFile(args.archive) as archive:
-            package_bytes = sum(info.file_size for info in archive.infolist())
-            if package_bytes > M365_AGENT_MAX_PACKAGE_BYTES:
-                fail("Microsoft 365 agent package exceeds the 10 MB limit")
             members = {
                 info.filename
                 for info in archive.infolist()
@@ -564,6 +591,9 @@ def verify_m365_agent_package(args):
                     fail(f"packaged {member} differs from the canonical skill source")
             manifest = read_member_json(archive, "manifest.json")
             agent = read_member_json(archive, "declarativeAgent.json")
+            check_microsoft_skills(
+                archive, agent.get("agent_skills", []), declarative_agent=True
+            )
             plugin = read_member_json(archive, "ai-plugin.json")
             for icon in ("Color.png", "Outline.png"):
                 data = archive.read(icon)
@@ -623,7 +653,11 @@ def parse_args():
 
     m365_package = commands.add_parser("verify-m365-package")
     m365_package.add_argument("archive")
-    m365_package.set_defaults(run=verify_m365_package)
+    m365_package.set_defaults(run=verify_m365_package, cowork=False)
+
+    cowork_package = commands.add_parser("verify-cowork-package")
+    cowork_package.add_argument("archive")
+    cowork_package.set_defaults(run=verify_m365_package, cowork=True)
 
     m365_agent_render = commands.add_parser("render-m365-agent")
     m365_agent_render.add_argument("source")

@@ -38,12 +38,17 @@ jobs:
           VERSION: ${{ github.ref_name }}
 
       - name: Package Microsoft 365 Copilot agent
+        if: vars.TEAMS_APP_ID != '' || vars.GETWHYS_DCR_AUTH_ID != ''
         run: ./scripts/package-m365-agent.sh
         env:
           TEAMS_APP_ID: ${{ vars.TEAMS_APP_ID }}
           GETWHYS_DCR_AUTH_ID: ${{ vars.GETWHYS_DCR_AUTH_ID }}
           VERSION: ${{ github.ref_name }}
           APP_NAME_SUFFIX: ""
+
+      - name: Note skipped Microsoft 365 Copilot agent
+        if: vars.TEAMS_APP_ID == '' && vars.GETWHYS_DCR_AUTH_ID == ''
+        run: echo "::warning::Microsoft agent ZIP skipped; provisioning IDs are not set."
 
       - name: Package Claude Tag plugin
         run: ./scripts/package-plugin.sh

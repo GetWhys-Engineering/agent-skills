@@ -4,6 +4,13 @@ version: v1.13
 environmentFolderPath: ./env
 
 provision:
+  - uses: script
+    name: Run repository checks
+    env:
+      SKIP_REMOTE_DCR_CHECK: "1"
+    with:
+      run: bash ../../scripts/validate-m365-agent.sh
+
   - uses: teamsApp/create
     with:
       name: GetWhys Buyer Intelligence${{APP_NAME_SUFFIX}}
@@ -56,6 +63,13 @@ provision:
       shareLink: SHARE_LINK
 
 publish:
+  - uses: script
+    name: Run repository checks
+    env:
+      SKIP_REMOTE_DCR_CHECK: "1"
+    with:
+      run: bash ../../scripts/validate-m365-agent.sh
+
   - uses: script
     name: Bundle the canonical GetWhys skill
     with:

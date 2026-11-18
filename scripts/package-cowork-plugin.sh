@@ -66,4 +66,6 @@ python3 "$ARTIFACT_JSON" render-cowork-manifest -- \
   -x '*.DS_Store' -x '*__MACOSX*')
 rm -rf "$STAGE_DIR"
 
+python3 "$ARTIFACT_JSON" verify-cowork-package "$OUT_ZIP"
+
 echo "Built dist/getwhys-cowork.zip (version $VERSION, $SKILL_TOTAL skill(s))."

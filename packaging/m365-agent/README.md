@@ -60,7 +60,10 @@ This uses non-live sentinel IDs in a temporary package, validates all three
 official schemas, verifies the bundled skill byte-for-byte against its canonical
 source, checks the ZIP layout, and performs read-only checks of GetWhys OAuth
 discovery metadata. It never registers an OAuth client or modifies a Microsoft
-tenant. Set `SKIP_REMOTE_DCR_CHECK=1` only for offline validation.
+tenant. Schema validation requires `uvx` or `pipx`. PR checks and the Toolkit
+`provision` and `publish` preflight steps set `SKIP_REMOTE_DCR_CHECK=1` to check
+the package without depending on GetWhys availability. Releases retain the live
+DCR metadata check.
 
 ## Provision DCR in a development tenant
 
@@ -119,8 +122,10 @@ Provision them once for production:
 The tag-release workflow maps those repository variables into the packaging
 process and derives `VERSION` from the `v*` tag. Defining a GitHub variable does
 not inject it automatically; the explicit `env` mapping in
-`.github/workflows/release.yml` performs that handoff. A missing value fails the
-release instead of producing a package with an unresolved placeholder.
+`.github/workflows/release.yml` performs that handoff. If both IDs are absent,
+the release skips the agent ZIP with a warning and builds the other packages.
+If only one ID is configured, packaging fails so an incomplete configuration
+cannot produce an agent ZIP. Once both IDs are set, releases include the agent.
 
 To build the same production package locally, load the provisioned environment:
 
