@@ -16,6 +16,8 @@
 #
 # Checks, each of which fails the build:
 #   - the manifest's MCP connection carries no credentials (artifact-json.py)
+#   - the manifest names a public schema, not devPreview, and has no
+#     developer.contactInfo; certification rejects both (artifact-json.py)
 #   - manifest.json validates against the schema its $schema names, which is
 #     Microsoft's (check-jsonschema, run through uvx or pipx; needs network).
 #     CI must run it; a local run without uvx or pipx skips it with a warning.

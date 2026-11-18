@@ -37,6 +37,13 @@ PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
 M365_MCP_URL = "https://api.getwhys.io/mcp/org"
 M365_SERVER_KEYS = {"mcpServerUrl", "authorization", "mcpToolDescription"}
 M365_AUTH_KEYS = {"type", "referenceId"}
+# Certification refuses a devPreview manifest once the connector uses
+# DynamicClientRegistration, and asks for developer.contactInfo to be removed
+# (policy 1140.4.1.1, 1.7.1 report, 2026-11-18). The manifest must name a public
+# schema, which the build then validates it against.
+M365_PUBLIC_SCHEMA = re.compile(
+    r"https://developer\.microsoft\.com/en-us/json-schemas/teams/v(\d+\.\d+)/MicrosoftTeams\.schema\.json"
+)
 
 # Microsoft's package rules for agentSkills, from "Build plugins for Copilot
 # Cowork" (learn.microsoft.com/microsoft-365/copilot/cowork/cowork-plugin-development).
@@ -250,6 +257,16 @@ def check_m365_manifest(manifest, path):
         fail(f"{path} has no 'id'; it must keep the live app's id")
     if "agentSkills" in manifest:
         fail(f"{path} must not list agentSkills; the build adds one per skills/<name>/")
+
+    schema = M365_PUBLIC_SCHEMA.fullmatch(manifest.get("$schema", ""))
+    if not schema or manifest.get("manifestVersion") != schema.group(1):
+        fail(
+            f"{path} must use a public manifest schema (e.g. v1.30), with $schema and "
+            f"manifestVersion naming the same version; Microsoft certification "
+            f"rejects devPreview for this app"
+        )
+    if "contactInfo" in (manifest.get("developer") or {}):
+        fail(f"{path} must not have developer.contactInfo; Microsoft certification rejects it")
 
     connectors = manifest.get("agentConnectors") or []
     if not connectors:
