@@ -9,7 +9,7 @@ ARTIFACT_JSON="$REPO_ROOT/scripts/artifact-json.py"
 DIST_DIR="$REPO_ROOT/dist"
 STAGE_DIR="$DIST_DIR/.m365-agent-stage"
 OUT_ZIP="${OUTPUT_ZIP:-$DIST_DIR/getwhys-m365-agent.zip}"
-CHECK_JSONSCHEMA="check-jsonschema==0.36.2"
+CHECK_JSONSCHEMA="check-jsonschema==0.38.2"
 
 APP_ID="${TEAMS_APP_ID:-}"
 AUTH_ID="${GETWHYS_DCR_AUTH_ID:-}"

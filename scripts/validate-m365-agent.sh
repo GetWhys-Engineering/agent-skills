@@ -21,11 +21,11 @@ OUTPUT_ZIP="$TEST_ZIP" \
   "$REPO_ROOT/scripts/package-m365-agent.sh"
 
 if command -v uvx >/dev/null 2>&1; then
-  uvx --quiet --from check-jsonschema==0.36.2 check-jsonschema \
+  uvx --quiet --from check-jsonschema==0.38.2 check-jsonschema \
     --schemafile https://aka.ms/m365-agents-toolkits/v1.13/yaml.schema.json \
     "$REPO_ROOT/packaging/m365-agent/m365agents.yml"
 elif command -v pipx >/dev/null 2>&1; then
-  pipx run --spec check-jsonschema==0.36.2 check-jsonschema \
+  pipx run --spec check-jsonschema==0.38.2 check-jsonschema \
     --schemafile https://aka.ms/m365-agents-toolkits/v1.13/yaml.schema.json \
     "$REPO_ROOT/packaging/m365-agent/m365agents.yml"
 elif [ -n "${CI:-}" ]; then
