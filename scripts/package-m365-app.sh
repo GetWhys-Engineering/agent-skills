@@ -18,6 +18,12 @@
 #   - the manifest's MCP connection carries no credentials (artifact-json.py)
 #   - the manifest names a public schema, not devPreview, and has no
 #     developer.contactInfo; certification rejects both (artifact-json.py)
+#   - the manifest's developer.name is the Partner Center publisher name, and
+#     its store text names Microsoft products as certification requires
+#     (artifact-json.py)
+#   - the Partner Center listing in packaging/m365/listing/ (not part of the
+#     zip) follows Partner Center's and certification's rules; see its README
+#     (artifact-json.py verify-m365-listing)
 #   - manifest.json validates against the schema its $schema names, which is
 #     Microsoft's (check-jsonschema, run through uvx or pipx; needs network).
 #     CI must run it; a local run without uvx or pipx skips it with a warning.
@@ -57,6 +63,9 @@ if [ "$SKILL_TOTAL" -eq 0 ]; then
   echo "FAIL: no skills under skills/ to package." >&2
   exit 1
 fi
+
+# --- check the Partner Center listing (copied into Partner Center by hand) ---
+python3 "$ARTIFACT_JSON" verify-m365-listing "$M365_DIR/listing" "$M365_DIR/manifest.json"
 
 # --- stage the package ---
 rm -rf "$STAGE_DIR" "$OUT_ZIP"
