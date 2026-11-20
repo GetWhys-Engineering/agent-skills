@@ -11,7 +11,8 @@
 #   - no .DS_Store / __MACOSX / obvious secret patterns
 #   - no obvious secret patterns anywhere else in the repo either
 #   - the Claude Tag package template is credential-free and no root .mcp.json exists
-#   - the Microsoft 365 app manifest names its MCP connection by ID only
+#   - the Microsoft 365 app manifest names its MCP connection by ID only and
+#     uses a public manifest schema, not devPreview
 #
 # Exits non-zero on any violation. Runs on macOS bash 3.2 and Linux.
 

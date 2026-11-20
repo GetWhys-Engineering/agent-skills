@@ -1,23 +1,13 @@
 {
-  "$schema": "https://developer.microsoft.com/en-us/json-schemas/teams/vDevPreview/MicrosoftTeams.schema.json",
-  "manifestVersion": "devPreview",
+  "$schema": "https://developer.microsoft.com/en-us/json-schemas/teams/v1.30/MicrosoftTeams.schema.json",
+  "manifestVersion": "1.30",
   "version": "1.0.3",
   "id": "87b884ad-6fa6-44b7-ab76-d3af04ac30b3",
   "developer": {
-    "name": "Get Whys, Inc.",
+    "name": "Get Whys Inc",
     "websiteUrl": "https://www.getwhys.io",
     "privacyUrl": "https://www.getwhys.io/privacy-policy",
-    "termsOfUseUrl": "https://www.getwhys.io/terms-and-conditions",
-    "contactInfo": {
-      "defaultSupport": {
-        "userEmailsForChatSupport": [
-          "support@getwhys.io"
-        ],
-        "emailsForEmailSupport": [
-          "support@getwhys.io"
-        ]
-      }
-    }
+    "termsOfUseUrl": "https://www.getwhys.io/terms-and-conditions"
   },
   "name": {
     "short": "GetWhys MCP",
@@ -36,8 +26,8 @@
         "remoteMcpServer": {
           "mcpServerUrl": "https://api.getwhys.io/mcp/org",
           "authorization": {
-            "type": "ConnectionVault",
-            "referenceId": "shared_getwhysmcp"
+            "type": "DynamicClientRegistration",
+            "referenceId": "MDM0Nzk0OWYtNmI1OC00NDQ2LTkwM2QtMDI2YmMwMzIxNmJhIyNhZWFkYWEzOC0xMmNiLTQ3ZTItOTc0MC1lNGUzMGUwNWZmZjI="
           }
         }
       }
