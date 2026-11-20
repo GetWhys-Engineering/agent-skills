@@ -2,6 +2,7 @@
 """Render and validate JSON metadata used by packaged release artifacts."""
 
 import argparse
+import html
 import json
 import re
 import struct
@@ -44,6 +45,32 @@ M365_AUTH_KEYS = {"type", "referenceId"}
 M365_PUBLIC_SCHEMA = re.compile(
     r"https://developer\.microsoft\.com/en-us/json-schemas/teams/v(\d+\.\d+)/MicrosoftTeams\.schema\.json"
 )
+# "Developer name must be the same in the app manifest and AppSource" (Teams
+# Store validation guidelines, App name, Must fix). AppSource shows the Partner
+# Center publisher name: "by Get Whys Inc".
+M365_PUBLISHER_NAME = "Get Whys Inc"
+# Store text names Microsoft products in full the first time, and may shorten
+# them after: "write the first reference in the app listing as Microsoft
+# Teams" (guidelines, App descriptions, Must fix). Microsoft's reviewers apply
+# the same rule to Copilot, and Microsoft is never "MS" or "MSFT".
+M365_FIRST_MENTIONS = {
+    "Copilot": re.compile(r"Microsoft\s+(?:365\s+)?Copilot$"),
+    "Teams": re.compile(r"Microsoft\s+Teams$"),
+}
+M365_ABBREVIATION = re.compile(r"\b(?:MS|MSFT)\b")
+
+# The Partner Center listing kept in packaging/m365/listing/. Limits are
+# Partner Center's (its field lengths, read 2026-11-19) and the guidelines'
+# Screenshots section.
+M365_SUMMARY_MAX = 100
+M365_DESCRIPTION_MAX = 10000
+M365_MAX_SCREENSHOTS = 5
+M365_SCREENSHOT_PX = (1366, 768)
+M365_SCREENSHOT_MAX_BYTES = 1024 * 1024
+M365_VIDEO_URL = re.compile(r"https://(?:www\.)?(?:youtube\.com|youtu\.be|vimeo\.com)/\S+")
+# PNG chunks that carry text or EXIF (author, software, capture details). A
+# committed screenshot stays public in git history, so it ships without them.
+PNG_METADATA_CHUNKS = {b"tEXt", b"iTXt", b"zTXt", b"eXIf"}
 
 # Microsoft's package rules for agentSkills, from "Build plugins for Copilot
 # Cowork" (learn.microsoft.com/microsoft-365/copilot/cowork/cowork-plugin-development).
@@ -120,6 +147,18 @@ def png_dimensions(path):
     if len(header) < 24 or header[:8] != PNG_SIGNATURE or header[12:16] != b"IHDR":
         return None
     return struct.unpack(">II", header[16:24])
+
+
+def png_metadata_chunks(path):
+    """Names of the text and EXIF chunks in a PNG."""
+    data = Path(path).read_bytes()
+    found, offset = set(), len(PNG_SIGNATURE)
+    while offset + 8 <= len(data):
+        length, kind = struct.unpack(">I4s", data[offset : offset + 8])
+        if kind in PNG_METADATA_CHUNKS:
+            found.add(kind.decode("ascii"))
+        offset += 12 + length
+    return sorted(found)
 
 
 def readme_word_count(text):
@@ -251,6 +290,36 @@ def render_cowork_manifest(args):
     write_json(args.output, manifest)
 
 
+def m365_name_problems(label, texts):
+    """Microsoft product names in store text, given in the order a reader sees it."""
+    text = "\n".join(texts)
+    problems = []
+    for product, full_name in M365_FIRST_MENTIONS.items():
+        first = re.search(rf"\b{product}\b", text)
+        if first and not full_name.search(text[: first.end()]):
+            problems.append(
+                f"{label}: the first mention of {product} must name it in full "
+                f"(e.g. 'Microsoft {product}'): ...{text[max(0, first.start() - 40) : first.end()]!r}"
+            )
+    abbreviation = M365_ABBREVIATION.search(text)
+    if abbreviation:
+        problems.append(f"{label}: write 'Microsoft', not {abbreviation.group(0)!r}")
+    return problems
+
+
+def m365_manifest_texts(manifest):
+    """The manifest text a store customer reads, in display order."""
+    texts = [
+        (manifest.get("name") or {}).get("short", ""),
+        (manifest.get("name") or {}).get("full", ""),
+        (manifest.get("description") or {}).get("short", ""),
+        (manifest.get("description") or {}).get("full", ""),
+    ]
+    for connector in manifest.get("agentConnectors") or []:
+        texts += [connector.get("displayName", ""), connector.get("description", "")]
+    return texts
+
+
 def check_m365_manifest(manifest, path):
     """Fail unless the source manifest is safe to publish and to build from."""
     if not manifest.get("id"):
@@ -265,8 +334,17 @@ def check_m365_manifest(manifest, path):
             f"manifestVersion naming the same version; Microsoft certification "
             f"rejects devPreview for this app"
         )
-    if "contactInfo" in (manifest.get("developer") or {}):
+    developer = manifest.get("developer") or {}
+    if "contactInfo" in developer:
         fail(f"{path} must not have developer.contactInfo; Microsoft certification rejects it")
+    if developer.get("name") != M365_PUBLISHER_NAME:
+        fail(
+            f"{path}: developer.name must be {M365_PUBLISHER_NAME!r}, the Partner Center "
+            f"publisher name; Microsoft certification requires the two to match"
+        )
+    problems = m365_name_problems(path, m365_manifest_texts(manifest))
+    if problems:
+        fail("\n  ".join(problems))
 
     connectors = manifest.get("agentConnectors") or []
     if not connectors:
@@ -382,6 +460,97 @@ def verify_m365_package(args):
                 fail(f"{info.filename} uses a Windows reserved name")
 
 
+def verify_m365_listing(args):
+    """Check the Partner Center listing in packaging/m365/listing/ (see its README)."""
+    root = Path(args.listing)
+    listing = read_json(root / "listing.json")
+    developer = read_json(args.manifest).get("developer") or {}
+    problems = []
+
+    summary = listing.get("summary")
+    if not isinstance(summary, str) or not summary.strip():
+        problems.append("summary is missing")
+        summary = ""
+    elif "\n" in summary or len(summary) > M365_SUMMARY_MAX:
+        problems.append(
+            f"summary must be one line of at most {M365_SUMMARY_MAX} characters "
+            f"(Partner Center's limit); it has {len(summary)}"
+        )
+
+    description_text = ""
+    description_path = root / str(listing.get("description", ""))
+    if not listing.get("description") or not description_path.is_file():
+        problems.append(f"description file {listing.get('description')!r} is missing")
+    else:
+        description = description_path.read_text(encoding="utf-8").strip()
+        if not description:
+            problems.append(f"{description_path.name} is empty")
+        elif len(description) > M365_DESCRIPTION_MAX:
+            problems.append(
+                f"{description_path.name} has {len(description)} characters; "
+                f"Partner Center takes {M365_DESCRIPTION_MAX}"
+            )
+        description_text = html.unescape(re.sub(r"<[^>]+>", " ", description))
+
+    # Partner Center needs at least one screenshot, but this folder may hold
+    # none: the live ones stay in Partner Center until replacements made for
+    # publication are committed here (see the README).
+    screenshots = listing.get("screenshots") or []
+    if len(screenshots) > M365_MAX_SCREENSHOTS:
+        problems.append(f"{len(screenshots)} screenshots; Partner Center takes {M365_MAX_SCREENSHOTS}")
+    listed = set()
+    captions = []
+    for shot in screenshots:
+        file = shot.get("file", "")
+        path = root / file
+        listed.add(path.resolve())
+        if not path.is_file():
+            problems.append(f"screenshot {file!r} is missing")
+            continue
+        size = png_dimensions(path)
+        if size is None:
+            problems.append(f"{file} is not a PNG")
+        else:
+            if size != M365_SCREENSHOT_PX:
+                problems.append(f"{file} is {size[0]}x{size[1]}; screenshots must be exactly 1366x768")
+            metadata = png_metadata_chunks(path)
+            if metadata:
+                problems.append(
+                    f"{file} carries metadata ({', '.join(metadata)}); strip it before "
+                    f"committing, e.g. exiftool -all= {path.name}"
+                )
+        if path.stat().st_size > M365_SCREENSHOT_MAX_BYTES:
+            problems.append(f"{file} is larger than 1,024 KB")
+        if not str(shot.get("caption", "")).strip():
+            problems.append(f"{file} has no caption")
+        captions.append(str(shot.get("caption", "")))
+    for path in sorted((root / "screenshots").glob("*")):
+        if path.resolve() not in listed:
+            problems.append(f"screenshots/{path.name} isn't listed in listing.json")
+
+    video = listing.get("videoUrl")
+    if video and not M365_VIDEO_URL.fullmatch(video):
+        problems.append(f"videoUrl {video!r} must be a YouTube or Vimeo link")
+
+    if listing.get("eulaUrl") != developer.get("termsOfUseUrl"):
+        problems.append(
+            f"eulaUrl {listing.get('eulaUrl')!r} must equal the manifest's "
+            f"developer.termsOfUseUrl {developer.get('termsOfUseUrl')!r}"
+        )
+    if listing.get("privacyUrl") != developer.get("privacyUrl"):
+        problems.append(
+            f"privacyUrl {listing.get('privacyUrl')!r} must equal the manifest's "
+            f"developer.privacyUrl {developer.get('privacyUrl')!r}"
+        )
+    if not str(listing.get("supportUrl", "")).startswith("https://"):
+        problems.append("supportUrl must be an https URL; Partner Center doesn't take an email address")
+
+    problems += m365_name_problems("listing", [summary, description_text, *captions])
+
+    if problems:
+        fail("the Microsoft 365 listing breaks Partner Center rules:\n  " + "\n  ".join(problems))
+
+
 def parse_args():
     parser = argparse.ArgumentParser(description=__doc__)
     commands = parser.add_subparsers(dest="command", required=True)
@@ -429,6 +598,11 @@ def parse_args():
     m365_package = commands.add_parser("verify-m365-package")
     m365_package.add_argument("archive")
     m365_package.set_defaults(run=verify_m365_package)
+
+    m365_listing = commands.add_parser("verify-m365-listing")
+    m365_listing.add_argument("listing")
+    m365_listing.add_argument("manifest")
+    m365_listing.set_defaults(run=verify_m365_listing)
 
     return parser.parse_args()
 
