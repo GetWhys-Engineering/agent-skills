@@ -20,9 +20,8 @@ codes, client secrets, or customer data.
 - [ ] The plugin uses `RemoteMCPServer`, the exact GetWhys URL,
       `OAuthPluginVault`, the provisioned DCR auth-configuration ID, wildcard
       dispatch, and no `mcp_tool_description`.
-- [ ] No client ID, client secret, token, authorization code, or
-      `shared_getwhysmcp` appears in source, environment-independent artifacts,
-      logs, or review materials.
+- [ ] No client ID, client secret, token, or authorization code appears in
+      source, environment-independent artifacts, logs, or review materials.
 
 ## DCR and PKCE
 

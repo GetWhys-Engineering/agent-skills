@@ -4,7 +4,7 @@
   "version": "${{APP_VERSION}}",
   "id": "${{TEAMS_APP_ID}}",
   "developer": {
-    "name": "Get Whys, Inc.",
+    "name": "Get Whys Inc",
     "websiteUrl": "https://www.getwhys.io",
     "privacyUrl": "https://www.getwhys.io/privacy-policy",
     "termsOfUseUrl": "https://www.getwhys.io/terms-and-conditions"

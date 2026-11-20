@@ -38,12 +38,19 @@ PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
 M365_MCP_URL = "https://api.getwhys.io/mcp/org"
 M365_SERVER_KEYS = {"mcpServerUrl", "authorization", "mcpToolDescription"}
 M365_AUTH_KEYS = {"type", "referenceId"}
+M365_MARKETPLACE_MANIFEST = Path(__file__).resolve().parent.parent / "packaging/m365/manifest.json"
+
+# Store rules for every Microsoft 365 app we submit to Partner Center: the
+# Marketplace app here and the declarative agent below
+# (check_m365_store_manifest).
+#
 # Certification refuses a devPreview manifest once the connector uses
 # DynamicClientRegistration, and asks for developer.contactInfo to be removed
 # (policy 1140.4.1.1, 1.7.1 report, 2026-11-18). The manifest must name a public
-# schema, which the build then validates it against.
+# schema, which the build then validates it against. Microsoft serves the same
+# schema with and without /en-us/ in the path.
 M365_PUBLIC_SCHEMA = re.compile(
-    r"https://developer\.microsoft\.com/en-us/json-schemas/teams/v(\d+\.\d+)/MicrosoftTeams\.schema\.json"
+    r"https://developer\.microsoft\.com/(?:en-us/)?json-schemas/teams/v(\d+\.\d+)/MicrosoftTeams\.schema\.json"
 )
 # "Developer name must be the same in the app manifest and AppSource" (Teams
 # Store validation guidelines, App name, Must fix). AppSource shows the Partner
@@ -350,31 +357,48 @@ def m365_manifest_texts(manifest):
     return texts
 
 
+def check_m365_store_manifest(manifest, label, texts):
+    """Fail on what certification rejects in any app we submit to Partner Center.
+
+    texts is the store text a customer reads, in display order.
+    """
+    schema = M365_PUBLIC_SCHEMA.fullmatch(manifest.get("$schema", ""))
+    if not schema or manifest.get("manifestVersion") != schema.group(1):
+        fail(
+            f"{label} must use a public manifest schema (e.g. v1.30), with $schema and "
+            f"manifestVersion naming the same version; Microsoft certification "
+            f"rejects devPreview for this app"
+        )
+    developer = manifest.get("developer") or {}
+    if "contactInfo" in developer:
+        fail(f"{label} must not have developer.contactInfo; Microsoft certification rejects it")
+    if developer.get("name") != M365_PUBLISHER_NAME:
+        fail(
+            f"{label}: developer.name must be {M365_PUBLISHER_NAME!r}, the Partner Center "
+            f"publisher name; Microsoft certification requires the two to match"
+        )
+    problems = m365_name_problems(label, texts)
+    if problems:
+        fail("\n  ".join(problems))
+
+
+def m365_marketplace_reference_ids():
+    """The connection references the Marketplace app's manifest names."""
+    return {
+        ((connector.get("toolSource") or {}).get("remoteMcpServer") or {})
+        .get("authorization", {})
+        .get("referenceId")
+        for connector in read_json(M365_MARKETPLACE_MANIFEST).get("agentConnectors") or []
+    } - {None}
+
+
 def check_m365_manifest(manifest, path):
     """Fail unless the source manifest is safe to publish and to build from."""
     if not manifest.get("id"):
         fail(f"{path} has no 'id'; it must keep the live app's id")
     if "agentSkills" in manifest:
         fail(f"{path} must not list agentSkills; the build adds one per skills/<name>/")
-
-    schema = M365_PUBLIC_SCHEMA.fullmatch(manifest.get("$schema", ""))
-    if not schema or manifest.get("manifestVersion") != schema.group(1):
-        fail(
-            f"{path} must use a public manifest schema (e.g. v1.30), with $schema and "
-            f"manifestVersion naming the same version; Microsoft certification "
-            f"rejects devPreview for this app"
-        )
-    developer = manifest.get("developer") or {}
-    if "contactInfo" in developer:
-        fail(f"{path} must not have developer.contactInfo; Microsoft certification rejects it")
-    if developer.get("name") != M365_PUBLISHER_NAME:
-        fail(
-            f"{path}: developer.name must be {M365_PUBLISHER_NAME!r}, the Partner Center "
-            f"publisher name; Microsoft certification requires the two to match"
-        )
-    problems = m365_name_problems(path, m365_manifest_texts(manifest))
-    if problems:
-        fail("\n  ".join(problems))
+    check_m365_store_manifest(manifest, path, m365_manifest_texts(manifest))
 
     connectors = manifest.get("agentConnectors") or []
     if not connectors:
@@ -584,6 +608,14 @@ def check_m365_agent_manifests(manifest, agent, plugin, label):
         )
     if not agent.get("instructions"):
         fail(f"{label}: declarativeAgent.json has no instructions")
+    starters = agent.get("conversation_starters") or []
+    check_m365_store_manifest(
+        manifest,
+        f"{label} manifest.json",
+        m365_manifest_texts(manifest)
+        + [agent.get("description", "")]
+        + [starter.get(key, "") for starter in starters for key in ("title", "text")],
+    )
 
     if plugin.get("$schema") != M365_AGENT_PLUGIN_SCHEMA:
         fail(f"{label}: ai-plugin.json must use plugin schema v2.4")
@@ -616,10 +648,10 @@ def check_m365_agent_manifests(manifest, agent, plugin, label):
     if auth.get("type") != "OAuthPluginVault":
         fail(f"{label}: declarative-agent MCP auth must use OAuthPluginVault")
     reference_id = auth.get("reference_id", "")
-    if not reference_id or reference_id == "shared_getwhysmcp":
+    if not reference_id or reference_id in m365_marketplace_reference_ids():
         fail(
-            f"{label}: reference_id must be a provisioned DCR auth-configuration ID, "
-            "never the connector's ConnectionVault reference"
+            f"{label}: reference_id must be the agent's own DCR auth-configuration ID "
+            "from dcr/register, never the Marketplace app's connection reference"
         )
     if "${{" in reference_id:
         fail(f"{label}: unresolved DCR auth-configuration placeholder")
@@ -639,8 +671,6 @@ def render_m365_agent(args):
     output = Path(args.output)
     if not source.is_dir():
         fail(f"Microsoft 365 agent source directory does not exist: {source}")
-    if args.auth_id == "shared_getwhysmcp":
-        fail("the declarative agent cannot reuse the ConnectionVault reference")
     if not args.auth_id.strip():
         fail("GETWHYS_DCR_AUTH_ID is empty; provision DCR before packaging")
     args.version = m365_version(args.version)
@@ -701,7 +731,7 @@ def check_m365_agent_env(args):
         r"[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}", app_id
     ):
         fail(f"{label}: TEAMS_APP_ID must be a GUID")
-    if auth_id == "shared_getwhysmcp":
+    if auth_id in m365_marketplace_reference_ids():
         fail(f"{label}: the agent cannot reuse the Marketplace app's connection reference")
 
 

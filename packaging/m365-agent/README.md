@@ -6,8 +6,9 @@ app, open **GetWhys Buyer Intelligence**, sign in to GetWhys, and chat. They do
 not create an agent or attach tools themselves.
 
 This package is separate from `packaging/m365/`, the existing connector-only
-Marketplace app that uses `agentConnectors` and `ConnectionVault`. Do not copy
-`shared_getwhysmcp` into this project.
+Marketplace app, whose `agentConnectors` entry has its own DCR connection. This
+project's comes from its own `dcr/register`; the build fails if it equals the
+Marketplace app's `referenceId`.
 
 ## Package architecture
 
@@ -81,8 +82,8 @@ client with GetWhys. Run it only after the tenant owner approves those changes.
    the configured development scope.
 6. Confirm `env/.env.dev` now contains non-empty, different values for:
    `TEAMS_APP_ID` and `GETWHYS_DCR_AUTH_ID`. The second value is Microsoft's
-   auth-configuration ID. It must not equal an OAuth client ID or
-   `shared_getwhysmcp`.
+   auth-configuration ID. It must not equal an OAuth client ID or the
+   Marketplace app's `referenceId`.
 
 The DCR lifecycle is intentionally configured with:
 
@@ -103,7 +104,7 @@ lifecycle; they are not values GetWhys invents:
 - `TEAMS_APP_ID` is the Microsoft 365 app GUID returned by `teamsApp/create`.
 - `GETWHYS_DCR_AUTH_ID` is the Microsoft authentication-configuration ID
   returned by `dcr/register`. It is not the dynamically registered OAuth
-  `client_id`, and it is not `shared_getwhysmcp`.
+  `client_id`, and it is not the Marketplace app's `referenceId`.
 
 Both are public identifiers, not credentials: every installer downloads the
 package that contains them, as with the Marketplace app's committed
