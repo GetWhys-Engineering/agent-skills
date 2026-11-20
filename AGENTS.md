@@ -50,7 +50,7 @@ niceties belong in the plugin wrapper (`.claude-plugin/`), not in the skill.
   internal-only details — in skills, docs, or commit history.
 - **Never add credential-bearing or platform-specific MCP config**
   (`gemini-extension.json` MCP bundles, tokens, secrets, client IDs, or request
-  headers). There are two exceptions, and `validate-skills.sh` checks both:
+  headers). The exceptions are below; the validation scripts check each one:
   - `packaging/claude-tag/.mcp.json`: the package build copies this
     credential-free public endpoint declaration into the root of the built
     Claude plugin (`dist/getwhys-skills/`), which ships as the Claude Tag zip
@@ -60,6 +60,15 @@ niceties belong in the plugin wrapper (`.claude-plugin/`), not in the skill.
     endpoint and a connection Microsoft stores, by ID only (`type` and
     `referenceId`). Keep its `id` unchanged: Microsoft treats a new id as a
     different app.
+  - `packaging/m365-agent/appPackage/ai-plugin.json`: the MCP action inside the
+    GetWhys declarative-agent package. It may contain only the public endpoint
+    and an `OAuthPluginVault.reference_id` populated by Microsoft's supported
+    DCR provisioning workflow. Never put an OAuth client ID, client secret,
+    token, or authorization code in this package or its environment files.
+  - `packaging/m365-agent/env/.env.prod`: the production agent's public
+    Microsoft IDs (app ID, DCR auth-configuration ID, title IDs), committed as
+    their single source. Agents Toolkit keeps secrets in `env/.env.prod.user`,
+    which stays ignored; `validate-m365-agent.sh` rejects any other key.
 
   Never put `.mcp.json` at the repository root,
   where the Claude Code marketplace plugin would load it automatically.
@@ -85,7 +94,10 @@ niceties belong in the plugin wrapper (`.claude-plugin/`), not in the skill.
    for Claude's directory and `getwhys-skills.zip` for Claude Tag; fails on
    anything the directory would hold or block),
    `./scripts/package-openai-plugin.sh` (ChatGPT plugin package, `getwhys-openai.zip`), and
-   `./scripts/package-m365-app.sh` (Microsoft 365 Marketplace app, `getwhys-m365.zip`).
+   `./scripts/package-m365-app.sh` (connector-only Microsoft 365 Marketplace
+   app, `getwhys-m365.zip`). The separate declarative agent is checked with
+   `./scripts/validate-m365-agent.sh`; after Microsoft DCR provisioning, build
+   its release candidate with `./scripts/package-m365-agent.sh`.
 3. Releases are cut by pushing a `v*` tag — CI re-validates, builds all zips,
    and attaches them to a GitHub Release. A second workflow publishes the
    Claude plugin to the `claude-directory` branch, which Claude's plugin

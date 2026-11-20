@@ -21,6 +21,9 @@ jobs:
       - name: Validate skills
         run: ./scripts/validate-skills.sh
 
+      - name: Validate Microsoft 365 declarative agent
+        run: ./scripts/validate-m365-agent.sh
+
       - name: Package per-skill zips
         run: ./scripts/package-skills.sh
 
@@ -31,6 +34,21 @@ jobs:
 
       - name: Package Microsoft 365 Marketplace app
         run: ./scripts/package-m365-app.sh
+        env:
+          VERSION: ${{ github.ref_name }}
+
+      - name: Package Microsoft 365 Copilot agent
+        # The production IDs live in the committed env/.env.prod. Until the
+        # production provision fills them in, the release skips the agent ZIP.
+        run: |
+          set -a
+          . packaging/m365-agent/env/.env.prod
+          set +a
+          if [ -z "$TEAMS_APP_ID" ] && [ -z "$GETWHYS_DCR_AUTH_ID" ]; then
+            echo "::warning::Microsoft agent ZIP skipped; packaging/m365-agent/env/.env.prod has no provisioned IDs yet."
+            exit 0
+          fi
+          APP_NAME_SUFFIX="" ./scripts/package-m365-agent.sh
         env:
           VERSION: ${{ github.ref_name }}
 
