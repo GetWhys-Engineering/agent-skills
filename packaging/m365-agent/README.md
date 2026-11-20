@@ -107,9 +107,10 @@ lifecycle; they are not values GetWhys invents:
 
 Provision them once for production:
 
-1. Copy `env/.env.prod.example` to `env/.env.prod` and set the intended semantic
-   `APP_VERSION`, 1.0.0 or higher (Microsoft rejects a version that starts with
-   0). Keep `APP_NAME_SUFFIX` empty.
+1. Copy `env/.env.prod.example` to `env/.env.prod` and set `APP_VERSION` to the
+   Microsoft version of the release you are provisioning: (X+1).Y.Z of its
+   `vX.Y.Z` tag, the same version the Marketplace app ships with (`v0.8.0` →
+   `1.8.0`). Keep `APP_NAME_SUFFIX` empty.
 2. Open `packaging/m365-agent/` in VS Code, select the `prod` environment, sign
    in to the publisher tenant, and run **Provision** after tenant-owner approval.
 3. Agents Toolkit writes `TEAMS_APP_ID` and `GETWHYS_DCR_AUTH_ID` into
@@ -121,21 +122,27 @@ Provision them once for production:
    token in GitHub.
 
 The tag-release workflow maps those repository variables into the packaging
-process and derives `VERSION` from the `v*` tag. Defining a GitHub variable does
+process and passes the `v*` tag as `VERSION`. The agent's app version is
+(X+1).Y.Z of that tag, the same as the Microsoft 365 Marketplace app's, so both
+Microsoft apps ship at one version. Defining a GitHub variable does
 not inject it automatically; the explicit `env` mapping in
 `.github/workflows/release.yml` performs that handoff. If both IDs are absent,
 the release skips the agent ZIP with a warning and builds the other packages.
 If only one ID is configured, packaging fails so an incomplete configuration
 cannot produce an agent ZIP. Once both IDs are set, releases include the agent.
 
-To build the same production package locally, load the provisioned environment:
+To build the same production package locally, load the provisioned environment
+and pass the release tag:
 
 ```bash
 set -a
 . packaging/m365-agent/env/.env.prod
 set +a
-./scripts/package-m365-agent.sh
+VERSION=vX.Y.Z ./scripts/package-m365-agent.sh
 ```
+
+Without `VERSION`, the script uses the version in `.claude-plugin/plugin.json`.
+It ignores `APP_VERSION`, which only Agents Toolkit provisioning reads.
 
 The output is `dist/getwhys-m365-agent.zip`. The build fails if either Microsoft
 ID is absent, if the connector-only reference is reused, if static MCP tools are

@@ -1,5 +1,11 @@
 #!/usr/bin/env bash
 # Build the provisioned GetWhys declarative-agent package for Microsoft 365.
+#
+# VERSION (a vX.Y.Z release tag) sets the app version to (X+1).Y.Z, the same
+# mapping as the Microsoft 365 Marketplace app (package-m365-app.sh), so a
+# release ships both Microsoft apps at one version. Defaults to
+# .claude-plugin/plugin.json's version. APP_VERSION in env/.env.* is only for
+# Agents Toolkit provisioning; this script ignores it.
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -14,13 +20,12 @@ CHECK_JSONSCHEMA="check-jsonschema==0.38.2"
 APP_ID="${TEAMS_APP_ID:-}"
 AUTH_ID="${GETWHYS_DCR_AUTH_ID:-}"
 APP_NAME_SUFFIX="${APP_NAME_SUFFIX:-}"
-VERSION="${VERSION:-${APP_VERSION:-}}"
+VERSION="${VERSION:-}"
 
 if [ -z "$VERSION" ]; then
   VERSION="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["version"])' \
     "$REPO_ROOT/.claude-plugin/plugin.json")"
 fi
-VERSION="${VERSION#v}"
 
 if [ -z "$APP_ID" ]; then
   echo "FAIL: TEAMS_APP_ID is empty; provision the Microsoft app before packaging." >&2
@@ -34,8 +39,8 @@ fi
 rm -rf "$STAGE_DIR"
 mkdir -p "$STAGE_DIR" "$(dirname "$OUT_ZIP")"
 
-python3 "$ARTIFACT_JSON" render-m365-agent -- \
-  "$SOURCE_DIR" "$STAGE_DIR" "$APP_ID" "$AUTH_ID" "$VERSION" "$APP_NAME_SUFFIX"
+M365_VERSION="$(python3 "$ARTIFACT_JSON" render-m365-agent -- \
+  "$SOURCE_DIR" "$STAGE_DIR" "$APP_ID" "$AUTH_ID" "$VERSION" "$APP_NAME_SUFFIX")"
 cp "$SOURCE_DIR/Color.png" "$SOURCE_DIR/Outline.png" "$STAGE_DIR/"
 mkdir -p "$STAGE_DIR/skills"
 cp -R "$SKILL_SOURCE_DIR" "$STAGE_DIR/skills/"
@@ -73,4 +78,4 @@ rm -f "$OUT_ZIP"
 rm -rf "$STAGE_DIR"
 
 python3 "$ARTIFACT_JSON" verify-m365-agent-package "$OUT_ZIP"
-echo "Built ${OUT_ZIP#$REPO_ROOT/} (version $VERSION)."
+echo "Built ${OUT_ZIP#$REPO_ROOT/} (app version $M365_VERSION from $VERSION)."

@@ -8,6 +8,14 @@ if ! command -v uvx >/dev/null 2>&1 && ! command -v pipx >/dev/null 2>&1; then
   exit 1
 fi
 
+# Agents Toolkit loads env/.env.<name> into the environment of the provision
+# lifecycle's preflight step, so this catches a bad APP_VERSION before the
+# toolkit creates the app or the DCR configuration, which can't be deleted.
+if [ -n "${APP_VERSION:-}" ] && ! [[ "$APP_VERSION" =~ ^[1-9][0-9]*\.[0-9]+\.[0-9]+$ ]]; then
+  echo "FAIL: APP_VERSION $APP_VERSION must be X.Y.Z with X of 1 or more; Microsoft's package validation rejects a version that starts with 0." >&2
+  exit 1
+fi
+
 TEMP_DIR="$(mktemp -d)"
 TEST_ZIP="$TEMP_DIR/getwhys-m365-agent.schema-test.zip"
 HEADERS_FILE="$TEMP_DIR/mcp-headers"
@@ -21,7 +29,7 @@ trap cleanup EXIT
 TEAMS_APP_ID="171671ef-9243-419b-8408-4054cc5ec53f" \
 GETWHYS_DCR_AUTH_ID="local-schema-validation-not-a-live-auth-config" \
 APP_NAME_SUFFIX="-dev" \
-VERSION="1.0.0" \
+VERSION="v0.1.0" \
 OUTPUT_ZIP="$TEST_ZIP" \
   "$REPO_ROOT/scripts/package-m365-agent.sh"
 

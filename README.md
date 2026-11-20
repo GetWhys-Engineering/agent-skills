@@ -115,7 +115,9 @@ M365 Cowork package (`getwhys-cowork.zip`), the Claude Tag plugin package
 (`getwhys-skills.zip`), the OpenAI plugin upload (`getwhys-openai.zip`), and the
 Microsoft 365 Marketplace app upload (`getwhys-m365.zip`). The last two are for
 the GetWhys listings on ChatGPT and Microsoft Marketplace; customers install
-those from the stores, not from this page.
+those from the stores, not from this page. Microsoft 365 packages carry app
+version (X+1).Y.Z of the tag (`v0.8.0` ships as `1.8.0`), because Microsoft
+requires every upload to be higher than the last.
 Two URL shapes:
 
 ```

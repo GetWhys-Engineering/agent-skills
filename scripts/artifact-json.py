@@ -306,10 +306,13 @@ def validate_m365_manifest(args):
 
 
 def m365_version(tag_version):
-    """Map release tag vX.Y.Z to app version (X+1).Y.Z.
+    """Map release tag vX.Y.Z to Microsoft app version (X+1).Y.Z.
 
-    Microsoft requires every upload to be higher than the last, and the app was
-    published at 1.0.3 before this repo built it.
+    Both Microsoft 365 packages, the Marketplace app and the Copilot agent, use
+    this mapping, so one tag ships them at the same version. Microsoft requires
+    every upload to be higher than the last and rejects a version that starts
+    with 0, and the Marketplace app was published at 1.0.3 before this repo
+    built it.
     """
     match = re.fullmatch(r"v?(\d+)\.(\d+)\.(\d+)", tag_version)
     if not match:
@@ -545,8 +548,7 @@ def render_m365_agent(args):
         fail("the declarative agent cannot reuse the ConnectionVault reference")
     if not args.auth_id.strip():
         fail("GETWHYS_DCR_AUTH_ID is empty; provision DCR before packaging")
-    if not re.fullmatch(r"\d+\.\d+\.\d+", args.version):
-        fail(f"version {args.version!r} is not X.Y.Z")
+    args.version = m365_version(args.version)
 
     replacements = {
         placeholder: str(getattr(args, name))
@@ -567,6 +569,7 @@ def render_m365_agent(args):
     output.mkdir(parents=True, exist_ok=True)
     for filename, value in rendered.items():
         write_json(output / filename, value)
+    print(args.version)
 
 
 def verify_m365_agent_package(args):
