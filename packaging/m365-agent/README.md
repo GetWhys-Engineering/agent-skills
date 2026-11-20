@@ -108,7 +108,8 @@ lifecycle; they are not values GetWhys invents:
 Provision them once for production:
 
 1. Copy `env/.env.prod.example` to `env/.env.prod` and set the intended semantic
-   `APP_VERSION`. Keep `APP_NAME_SUFFIX` empty.
+   `APP_VERSION`, 1.0.0 or higher (Microsoft rejects a version that starts with
+   0). Keep `APP_NAME_SUFFIX` empty.
 2. Open `packaging/m365-agent/` in VS Code, select the `prod` environment, sign
    in to the publisher tenant, and run **Provision** after tenant-owner approval.
 3. Agents Toolkit writes `TEAMS_APP_ID` and `GETWHYS_DCR_AUTH_ID` into

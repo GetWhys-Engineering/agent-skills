@@ -14,7 +14,7 @@ codes, client secrets, or customer data.
 - [ ] `manifest.json` uses numbered schema 1.30 and references the declarative
       agent through `copilotAgents.declarativeAgents`.
 - [ ] The agent references `ai-plugin.json` through `actions`.
-- [ ] The agent references `./skills/validate-gtm-output` through
+- [ ] The agent references `skills/validate-gtm-output` (no leading `./`) through
       `agent_skills`, and its packaged files match the canonical repository
       skill byte-for-byte.
 - [ ] The plugin uses `RemoteMCPServer`, the exact GetWhys URL,

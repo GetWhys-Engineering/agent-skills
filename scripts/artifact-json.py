@@ -454,6 +454,11 @@ def check_m365_agent_manifests(manifest, agent, plugin, label):
         fail(f"{label}: manifest.json id must be a provisioned GUID")
     if not re.fullmatch(r"\d+\.\d+\.\d+", manifest.get("version", "")):
         fail(f"{label}: manifest.json version must be semantic X.Y.Z")
+    if manifest["version"].split(".")[0] == "0":
+        fail(
+            f"{label}: manifest.json version must be 1.0.0 or higher; Microsoft's "
+            "package validation rejects a version that starts with 0"
+        )
     if "agentConnectors" in manifest:
         fail(f"{label}: the declarative-agent package must not declare agentConnectors")
     refs = ((manifest.get("copilotAgents") or {}).get("declarativeAgents") or [])
@@ -464,12 +469,20 @@ def check_m365_agent_manifests(manifest, agent, plugin, label):
         fail(f"{label}: declarativeAgent.json must use schema v1.9")
     if agent.get("actions") != [{"id": "getwhysMcpAction", "file": "ai-plugin.json"}]:
         fail(f"{label}: declarativeAgent.json must reference ai-plugin.json exactly once")
-    if agent.get("agent_skills") != [
-        {"folder": f"./{M365_AGENT_SKILL_FOLDER}"}
-    ]:
+    if any(
+        str(skill.get("folder", "")).startswith("./")
+        for skill in agent.get("agent_skills") or []
+        if isinstance(skill, dict)
+    ):
+        fail(
+            f"{label}: declarativeAgent.json skill folders must not start with './'; "
+            "Microsoft's package validation can't resolve SKILL.md through it"
+        )
+    if agent.get("agent_skills") != [{"folder": M365_AGENT_SKILL_FOLDER}]:
         fail(
             f"{label}: declarativeAgent.json must reference the bundled "
-            f"{M365_AGENT_SKILL_NAME} skill exactly once"
+            f"{M365_AGENT_SKILL_NAME} skill exactly once, as "
+            f"{{\"folder\": \"{M365_AGENT_SKILL_FOLDER}\"}}"
         )
     if not agent.get("instructions"):
         fail(f"{label}: declarativeAgent.json has no instructions")

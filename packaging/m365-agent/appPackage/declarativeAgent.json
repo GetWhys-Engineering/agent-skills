@@ -39,7 +39,7 @@
   ],
   "agent_skills": [
     {
-      "folder": "./skills/validate-gtm-output"
+      "folder": "skills/validate-gtm-output"
     }
   ]
 }

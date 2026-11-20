@@ -21,7 +21,7 @@ trap cleanup EXIT
 TEAMS_APP_ID="171671ef-9243-419b-8408-4054cc5ec53f" \
 GETWHYS_DCR_AUTH_ID="local-schema-validation-not-a-live-auth-config" \
 APP_NAME_SUFFIX="-dev" \
-VERSION="0.1.0" \
+VERSION="1.0.0" \
 OUTPUT_ZIP="$TEST_ZIP" \
   "$REPO_ROOT/scripts/package-m365-agent.sh"
 
