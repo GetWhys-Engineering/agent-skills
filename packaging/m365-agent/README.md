@@ -106,11 +106,28 @@ lifecycle; they are not values GetWhys invents:
   returned by `dcr/register`. It is not the dynamically registered OAuth
   `client_id`, and it is not the Marketplace app's `referenceId`.
 
-Both are public identifiers, not credentials: every installer downloads the
-package that contains them, as with the Marketplace app's committed
-`packaging/m365/manifest.json`. Their single source is the committed
-`env/.env.prod`. Agents Toolkit writes them there, and the release reads them
-from there.
+Both are public identifiers, not credentials. Every installer downloads the
+package that contains them. Checked against Microsoft's documentation in
+November 2026:
+
+- `GETWHYS_DCR_AUTH_ID` becomes the `reference_id` in `ai-plugin.json`. The
+  [plugin manifest schema](https://learn.microsoft.com/en-us/microsoft-365/copilot/extensibility/plugin-manifest-2.4#runtime-authentication-object)
+  says this reference "exists to prevent the need for storing secret values in
+  the plugin manifest", and the
+  [OAuth guide](https://learn.microsoft.com/en-us/plugins/plugin-authentication-oauth)
+  says "Only the auth config ID is stored in the manifest - no client ID,
+  client secret, or token is written to it." The OAuth client's ID and secret
+  stay in Microsoft's token store. The ID decodes to the publisher's tenant ID
+  and a GUID; the Marketplace app's `referenceId` in
+  `packaging/m365/manifest.json` already carries the same tenant ID.
+- `TEAMS_APP_ID` is the manifest `id`. Microsoft's
+  [deep-link guide](https://learn.microsoft.com/en-us/microsoftteams/platform/concepts/build-and-test/deep-link-application)
+  builds shareable install links from it.
+
+Microsoft's Agents Toolkit templates commit both values in `env/.env.<env>`
+and keep secrets in the ignored `env/.env.<env>.user`. Here, their single
+source is the committed `env/.env.prod`. Agents Toolkit writes them there, and
+the release reads them from there.
 
 Provision them once for production:
 
