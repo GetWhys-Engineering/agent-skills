@@ -105,31 +105,30 @@ lifecycle; they are not values GetWhys invents:
   returned by `dcr/register`. It is not the dynamically registered OAuth
   `client_id`, and it is not `shared_getwhysmcp`.
 
+Both are public identifiers, not credentials: every installer downloads the
+package that contains them, as with the Marketplace app's committed
+`packaging/m365/manifest.json`. Their single source is the committed
+`env/.env.prod`. Agents Toolkit writes them there, and the release reads them
+from there.
+
 Provision them once for production:
 
-1. Copy `env/.env.prod.example` to `env/.env.prod` and set `APP_VERSION` to the
-   Microsoft version of the release you are provisioning: (X+1).Y.Z of its
-   `vX.Y.Z` tag, the same version the Marketplace app ships with (`v0.8.0` →
-   `1.8.0`). Keep `APP_NAME_SUFFIX` empty.
+1. In `env/.env.prod`, set `APP_VERSION` to the Microsoft version of the release
+   you are provisioning: (X+1).Y.Z of its `vX.Y.Z` tag, the same version the
+   Marketplace app ships with (`v0.8.0` → `1.8.0`). Keep `APP_NAME_SUFFIX` empty.
 2. Open `packaging/m365-agent/` in VS Code, select the `prod` environment, sign
    in to the publisher tenant, and run **Provision** after tenant-owner approval.
-3. Agents Toolkit writes `TEAMS_APP_ID` and `GETWHYS_DCR_AUTH_ID` into
-   `env/.env.prod`. Keep that generated file local.
-4. In GitHub, open **Settings → Secrets and variables → Actions →
-   Variables** and create repository variables named `TEAMS_APP_ID` and
-   `GETWHYS_DCR_AUTH_ID` using those two values. They are identifiers rather
-   than credentials, so do not store the generated OAuth client secret or any
-   token in GitHub.
+3. Agents Toolkit writes `TEAMS_APP_ID`, `GETWHYS_DCR_AUTH_ID` and the title IDs
+   into `env/.env.prod`, and any secret into `env/.env.prod.user`, which stays
+   ignored. Commit `env/.env.prod`. `validate-m365-agent.sh` rejects any key in
+   it that isn't one of these public IDs.
 
-The tag-release workflow maps those repository variables into the packaging
-process and passes the `v*` tag as `VERSION`. The agent's app version is
-(X+1).Y.Z of that tag, the same as the Microsoft 365 Marketplace app's, so both
-Microsoft apps ship at one version. Defining a GitHub variable does
-not inject it automatically; the explicit `env` mapping in
-`.github/workflows/release.yml` performs that handoff. If both IDs are absent,
-the release skips the agent ZIP with a warning and builds the other packages.
-If only one ID is configured, packaging fails so an incomplete configuration
-cannot produce an agent ZIP. Once both IDs are set, releases include the agent.
+The tag-release workflow loads `env/.env.prod` and passes the `v*` tag as
+`VERSION`. The agent's app version is (X+1).Y.Z of that tag, the same as the
+Microsoft 365 Marketplace app's, so both Microsoft apps ship at one version.
+While both IDs are empty, the release skips the agent ZIP with a warning and
+builds the other packages. If only one is set, validation fails. Once both are
+committed, every release includes the agent.
 
 To build the same production package locally, load the provisioned environment
 and pass the release tag:
@@ -149,8 +148,8 @@ ID is absent, if the connector-only reference is reused, if static MCP tools are
 introduced, or if credentials appear in a manifest.
 
 If production provisioning is intentionally repeated and Microsoft returns a
-new app or authentication-configuration ID, update the corresponding GitHub
-variable before creating the release tag.
+new app or authentication-configuration ID, commit the updated `env/.env.prod`
+before creating the release tag.
 
 Do not submit a ZIP produced with the sentinel values used by the validation
 script. Submit only the exact production ZIP that passed the full test checklist.

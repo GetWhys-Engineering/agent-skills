@@ -16,6 +16,9 @@ if [ -n "${APP_VERSION:-}" ] && ! [[ "$APP_VERSION" =~ ^[1-9][0-9]*\.[0-9]+\.[0-
   exit 1
 fi
 
+python3 "$REPO_ROOT/scripts/artifact-json.py" check-m365-agent-env \
+  "$REPO_ROOT/packaging/m365-agent/env/.env.prod"
+
 TEMP_DIR="$(mktemp -d)"
 TEST_ZIP="$TEMP_DIR/getwhys-m365-agent.schema-test.zip"
 HEADERS_FILE="$TEMP_DIR/mcp-headers"

@@ -572,6 +572,44 @@ def render_m365_agent(args):
     print(args.version)
 
 
+M365_AGENT_PROD_ENV_KEYS = {
+    "TEAMSFX_ENV", "APP_NAME_SUFFIX", "APP_VERSION", "AGENT_SCOPE",
+    "TEAMS_APP_ID", "TEAMS_APP_TENANT_ID", "GETWHYS_DCR_AUTH_ID",
+    "M365_TITLE_ID", "M365_APP_ID", "SHARE_LINK",
+    "M365_PUBLISHED_TITLE_ID", "M365_PUBLISHED_APP_ID",
+}
+
+
+def check_m365_agent_env(args):
+    """The committed production env file holds only public Microsoft IDs."""
+    label = args.path
+    values = {}
+    for number, line in enumerate(Path(args.path).read_text().splitlines(), 1):
+        if not line.strip() or line.lstrip().startswith("#"):
+            continue
+        key, sep, value = line.partition("=")
+        if not sep:
+            fail(f"{label}:{number}: expected KEY=value")
+        if key not in M365_AGENT_PROD_ENV_KEYS:
+            fail(
+                f"{label}:{number}: unexpected key {key!r}; this committed file holds "
+                "only public Microsoft IDs, and secrets belong in env/.env.prod.user"
+            )
+        values[key] = value
+    if values.get("TEAMSFX_ENV") != "prod" or values.get("APP_NAME_SUFFIX"):
+        fail(f"{label}: must set TEAMSFX_ENV=prod and an empty APP_NAME_SUFFIX")
+    app_id = values.get("TEAMS_APP_ID", "")
+    auth_id = values.get("GETWHYS_DCR_AUTH_ID", "")
+    if bool(app_id) != bool(auth_id):
+        fail(f"{label}: set TEAMS_APP_ID and GETWHYS_DCR_AUTH_ID together")
+    if app_id and not re.fullmatch(
+        r"[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}", app_id
+    ):
+        fail(f"{label}: TEAMS_APP_ID must be a GUID")
+    if auth_id == "shared_getwhysmcp":
+        fail(f"{label}: the agent cannot reuse the Marketplace app's connection reference")
+
+
 def verify_m365_agent_package(args):
     repository_root = Path(__file__).resolve().parent.parent
     skill_source = repository_root / "skills" / M365_AGENT_SKILL_NAME
@@ -683,6 +721,10 @@ def parse_args():
     m365_agent_render.add_argument("version")
     m365_agent_render.add_argument("app_name_suffix")
     m365_agent_render.set_defaults(run=render_m365_agent)
+
+    m365_agent_env = commands.add_parser("check-m365-agent-env")
+    m365_agent_env.add_argument("path")
+    m365_agent_env.set_defaults(run=check_m365_agent_env)
 
     m365_agent_package = commands.add_parser("verify-m365-agent-package")
     m365_agent_package.add_argument("archive")

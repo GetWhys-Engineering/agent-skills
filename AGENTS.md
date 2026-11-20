@@ -50,7 +50,7 @@ niceties belong in the plugin wrapper (`.claude-plugin/`), not in the skill.
   internal-only details — in skills, docs, or commit history.
 - **Never add credential-bearing or platform-specific MCP config**
   (`gemini-extension.json` MCP bundles, tokens, secrets, client IDs, or request
-  headers). There are two exceptions, and `validate-skills.sh` checks both:
+  headers). The exceptions are below; the validation scripts check each one:
   - `packaging/claude-tag/.mcp.json`: the package build copies this
     credential-free public endpoint declaration into the root of the built
     Claude plugin (`dist/getwhys-skills/`), which ships as the Claude Tag zip
@@ -64,7 +64,11 @@ niceties belong in the plugin wrapper (`.claude-plugin/`), not in the skill.
     GetWhys declarative-agent package. It may contain only the public endpoint
     and an `OAuthPluginVault.reference_id` populated by Microsoft's supported
     DCR provisioning workflow. Never put an OAuth client ID, client secret,
-    token, or authorization code in this package or its environment examples.
+    token, or authorization code in this package or its environment files.
+  - `packaging/m365-agent/env/.env.prod`: the production agent's public
+    Microsoft IDs (app ID, DCR auth-configuration ID, title IDs), committed as
+    their single source. Agents Toolkit keeps secrets in `env/.env.prod.user`,
+    which stays ignored; `validate-m365-agent.sh` rejects any other key.
 
   Never put `.mcp.json` at the repository root,
   where the Claude Code marketplace plugin would load it automatically.
